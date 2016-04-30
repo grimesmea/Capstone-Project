@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">PrickleFit</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+    <string name="hedgehog_wheel_description">Hedgehog on excercise wheel</string>
+    <string name="todays_steps_label">steps today</string>
+</resources>
