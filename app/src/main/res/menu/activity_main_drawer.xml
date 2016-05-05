@@ -3,15 +3,15 @@
 
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/nav_camera"
+            android:id="@+id/nav_weeks_stats"
             android:icon="@drawable/ic_date_range"
             android:title="Week's Stats" />
         <item
-            android:id="@+id/nav_gallery"
+            android:id="@+id/nav_hedgie_collection"
             android:icon="@drawable/ic_menu_gallery"
             android:title="Hedgies" />
         <item
-            android:id="@+id/nav_slideshow"
+            android:id="@+id/nav_settings"
             android:icon="@drawable/ic_menu_manage"
             android:title="Settings" />
     </group>
