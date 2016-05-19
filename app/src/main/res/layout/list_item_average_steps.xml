@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp"
+    android:background="@color/color_light_grey"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin">
+
+    <TextView
+        android:id="@+id/weeks_average_steps_label_start"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:text="@string/weeks_average_steps_label_start"
+        android:textAlignment="center"
+        android:textColor="@color/color_dark_grey_text"
+        android:textSize="28sp" />
+
+    <TextView
+        android:id="@+id/weeks_average_steps"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/weeks_average_steps_label_start"
+        android:gravity="center_horizontal"
+        android:text="@string/weeks_average_steps"
+        android:textAlignment="center"
+        android:textSize="56sp" />
+
+    <TextView
+        android:id="@+id/weeks_average_steps_label_end"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/weeks_average_steps"
+        android:gravity="center_horizontal"
+        android:text="@string/weeks_average_steps_label_end"
+        android:textAlignment="center"
+        android:textColor="@color/color_dark_grey_text"
+        android:textSize="28sp" />
+
+    <TextView
+        android:id="@+id/weeks_average_steps_feedback_message"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/weeks_average_steps_label_end"
+        android:gravity="center_horizontal"
+        android:paddingTop="16dp"
+        android:text="@string/weeks_average_steps_feedback_message"
+        android:textAlignment="center"
+        android:textColor="@color/color_dark_grey_text"
+        android:textSize="36sp" />
+</RelativeLayout>
