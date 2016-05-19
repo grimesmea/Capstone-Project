@@ -34,8 +34,9 @@ public class WeeksStatsFragment extends Fragment {
         View emptyView = rootView.findViewById(R.id.recyclerview_daily_steps_empty);
         mRecyclerView.setHasFixedSize(true);
 
+        boolean isLandcape = rootView.findViewById(R.id.average_steps) != null ? true : false;
 
-        mDailyStepsAdapter = new DailyStepsAdapter(getActivity(), emptyView);
+        mDailyStepsAdapter = new DailyStepsAdapter(getActivity(), isLandcape, emptyView);
         mRecyclerView.setAdapter(mDailyStepsAdapter);
 
         return rootView;

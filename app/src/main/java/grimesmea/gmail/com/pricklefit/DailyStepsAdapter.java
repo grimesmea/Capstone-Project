@@ -9,7 +9,7 @@ import android.widget.TextView;
 
 /**
  * {@link DailyStepsAdapter} exposes a list of daily step counts as well as an average daily step
- *  count from a {@link android.database.Cursor} to a {@link android.support.v7.widget.RecyclerView}.
+ * count from a {@link android.database.Cursor} to a {@link android.support.v7.widget.RecyclerView}.
  */
 public class DailyStepsAdapter extends RecyclerView.Adapter<DailyStepsAdapter.DailyStepsAdapterViewHolder> {
 
@@ -18,31 +18,29 @@ public class DailyStepsAdapter extends RecyclerView.Adapter<DailyStepsAdapter.Da
 
     final private Context mContext;
     final private View mEmptyView;
+    final private boolean mIsLandscape;
 
-    public DailyStepsAdapter(Context context, View emptyView) {
+    public DailyStepsAdapter(Context context, boolean isLandscape, View emptyView) {
         mContext = context;
         mEmptyView = emptyView;
+        mIsLandscape = isLandscape;
     }
 
-    /*
-        This takes advantage of the fact that the viewGroup passed to onCreateViewHolder is the
-        RecyclerView that will be used to contain the view, so that it can get the current
-        ItemSelectionManager from the view.
-
-        One could implement this pattern without modifying RecyclerView by taking advantage
-        of the view tag to store the ItemChoiceManager.
-     */
     @Override
     public DailyStepsAdapterViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
         if (viewGroup instanceof RecyclerView) {
             int layoutId = -1;
-
             switch (viewType) {
                 case VIEW_TYPE_AVERAGE_STEPS: {
-                    layoutId = R.layout.list_item_average_steps;
+                    if (!mIsLandscape) {
+                        layoutId = R.layout.average_steps;
+                    } else {
+                        layoutId = R.layout.list_item_daily_steps;
+                    }
                     break;
                 }
                 case VIEW_TYPE_DAILY_STEPS: {
+
                     layoutId = R.layout.list_item_daily_steps;
                     break;
                 }
@@ -67,7 +65,11 @@ public class DailyStepsAdapter extends RecyclerView.Adapter<DailyStepsAdapter.Da
 
     @Override
     public int getItemCount() {
-        return 7;
+        if (mIsLandscape) {
+            return 6;
+        } else {
+            return 7;
+        }
     }
 
 
