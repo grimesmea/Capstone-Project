@@ -74,10 +74,20 @@ public class HedgehogCollectionAdapter extends RecyclerView.Adapter<HedgehogColl
      */
     public class HedgieCollectionAdapterViewHolder extends RecyclerView.ViewHolder {
         public final ImageView hedgieImage;
+        public final ImageView heartImage1;
+        public final ImageView heartImage2;
+        public final ImageView heartImage3;
+        public final ImageView heartImage4;
+        public final ImageView heartImage5;
 
         public HedgieCollectionAdapterViewHolder(View view) {
             super(view);
             hedgieImage = (ImageView) view.findViewById(R.id.hedgehog_image);
+            heartImage1 = (ImageView) view.findViewById(R.id.heart_1);
+            heartImage2 = (ImageView) view.findViewById(R.id.heart_2);
+            heartImage3 = (ImageView) view.findViewById(R.id.heart_3);
+            heartImage4 = (ImageView) view.findViewById(R.id.heart_4);
+            heartImage5 = (ImageView) view.findViewById(R.id.heart_5);
         }
     }
 }
