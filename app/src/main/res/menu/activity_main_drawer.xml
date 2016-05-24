@@ -8,7 +8,7 @@
             android:title="Week's Stats" />
         <item
             android:id="@+id/nav_hedgie_collection"
-            android:icon="@drawable/ic_menu_gallery"
+            android:icon="@drawable/ic_hedgehog"
             android:title="Hedgies" />
         <item
             android:id="@+id/nav_settings"

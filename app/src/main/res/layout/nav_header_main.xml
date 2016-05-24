@@ -15,5 +15,5 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:scaleType="fitCenter"
-        android:src="@drawable/hedgie_icon" />
+        android:src="@drawable/nav_drawer_hedgie" />
 </LinearLayout>
