@@ -51,7 +51,8 @@ public class MainActivity extends AppCompatActivity
             Intent intent = new Intent(this, StatsActivity.class);
             startActivity(intent);
         } else if (id == R.id.nav_hedgie_collection) {
-
+            Intent intent = new Intent(this, HedgehogCollectionActivity.class);
+            startActivity(intent);
         } else if (id == R.id.nav_settings) {
 
         }
