@@ -40,7 +40,6 @@ public class DailyStepsAdapter extends RecyclerView.Adapter<DailyStepsAdapter.Da
                     break;
                 }
                 case VIEW_TYPE_DAILY_STEPS: {
-
                     layoutId = R.layout.list_item_daily_steps;
                     break;
                 }
@@ -71,7 +70,6 @@ public class DailyStepsAdapter extends RecyclerView.Adapter<DailyStepsAdapter.Da
             return 7;
         }
     }
-
 
     /**
      * Cache of the children views for a daily step count list item.
