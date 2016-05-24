@@ -11,7 +11,7 @@ import android.view.ViewGroup;
 
 
 /**
- * Encapsulates fetching the daily step counts for the last week as well as the average daily step
+ * Encapsulates fetching the daily step counts for the past week as well as the average daily step
  * count and displaying it as a {@link android.support.v7.widget.RecyclerView} layout.
  */
 public class WeeksStatsFragment extends Fragment {

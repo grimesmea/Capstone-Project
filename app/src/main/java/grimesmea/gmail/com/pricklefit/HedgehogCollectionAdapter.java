@@ -9,7 +9,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 
 /**
- * Created by comrade.marie on 5/20/2016.
+ * {@link HedgehogCollectionAdapter} exposes a list of hedgehogs from a
+ * {@link android.database.Cursor} to a {@link android.support.v7.widget.RecyclerView}.
  */
 public class HedgehogCollectionAdapter extends RecyclerView.Adapter<HedgehogCollectionAdapter.HedgieCollectionAdapterViewHolder> {
 

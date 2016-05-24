@@ -11,7 +11,7 @@ import android.view.ViewGroup;
 
 
 /**
- * A simple {@link Fragment} subclass.
+ * Displays hedgehogs in a {@link android.support.v7.widget.RecyclerView} layout.
  */
 public class HedgehogCollectionFragment extends Fragment {
 

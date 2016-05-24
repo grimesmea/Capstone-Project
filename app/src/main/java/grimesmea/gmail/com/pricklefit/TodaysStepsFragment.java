@@ -9,7 +9,7 @@ import android.view.ViewGroup;
 
 
 /**
- * A simple {@link Fragment} subclass. Displays daily step count and goal.
+ * Displays daily step count and goal.
  */
 public class TodaysStepsFragment extends Fragment {
 
