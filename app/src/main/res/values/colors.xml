@@ -7,5 +7,6 @@
     <color name="color_default_text">#262626</color>
     <color name="color_dark_grey_text">#5C6266</color>
 
-    <color name="color_light_grey">#DDDDDD</color>
+    <color name="color_light_grey">#EEEEEE</color>
+    <color name="color_dark_grey">#DDDDDD</color>
 </resources>

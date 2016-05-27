@@ -40,6 +40,14 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />
         </activity>
+        <activity
+            android:name=".HedgehogDetailActivity"
+            android:parentActivityName=".HedgehogCollectionActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".HedgehogCollectionActivity" />
+        </activity>
     </application>
 
 </manifest>

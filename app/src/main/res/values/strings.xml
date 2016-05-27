@@ -17,7 +17,10 @@
     <string name="weeks_average_steps_feedback_message">Keep up the great work!</string>
     <string name="empty_daily_steps_list">No step data found for the past 7 days.</string>
 
-    <!--Hedgie Collection Activity-->
+    <!--Hedgehog Collection Activity-->
     <string name="title_activity_hedgehog_collection">Hedgie Collection</string>
     <string name="empty_hedgie_collection_list">Your hedgehog have gone missing. Please restart the app to try to find them.</string>
+
+    <!--Hedgehog Detail Fragment-->
+    <string name="action_set_active">Set As Home Screen</string>
 </resources>

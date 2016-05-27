@@ -1,8 +1,10 @@
 package grimesmea.gmail.com.pricklefit;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -72,7 +74,7 @@ public class HedgehogCollectionAdapter extends RecyclerView.Adapter<HedgehogColl
     /**
      * Cache of the children views for a hedgehog list item.
      */
-    public class HedgieCollectionAdapterViewHolder extends RecyclerView.ViewHolder {
+    public class HedgieCollectionAdapterViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         public final ImageView hedgieImage;
         public final ImageView heartImage1;
         public final ImageView heartImage2;
@@ -88,6 +90,14 @@ public class HedgehogCollectionAdapter extends RecyclerView.Adapter<HedgehogColl
             heartImage3 = (ImageView) view.findViewById(R.id.heart_3);
             heartImage4 = (ImageView) view.findViewById(R.id.heart_4);
             heartImage5 = (ImageView) view.findViewById(R.id.heart_5);
+            view.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View v) {
+            Log.d("HCAdapter", "ViewHolder clicked!");
+            Intent intent = new Intent(mContext, HedgehogDetailActivity.class);
+            mContext.startActivity(intent);
         }
     }
 }
