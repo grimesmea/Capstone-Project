@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@android:color/white"
     android:fitsSystemWindows="true"
     tools:context=".HedgehogCollectionActivity">
 
@@ -40,12 +41,12 @@
                     android:textSize="18sp" />
             </android.support.v7.widget.Toolbar>
         </android.support.design.widget.CollapsingToolbarLayout>
-
     </android.support.design.widget.AppBarLayout>
 
     <android.support.v4.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
+        android:fitsSystemWindows="true"
         app:behavior_overlapTop="64dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
@@ -53,8 +54,9 @@
             android:id="@+id/hedgie_collection"
             android:name="grimesmea.gmail.com.pricklefit.HedgehogCollectionFragment"
             android:layout_width="360dp"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:elevation="@dimen/appbar_elevation" />
+            android:elevation="@dimen/appbar_elevation"
+            android:fitsSystemWindows="true" />
     </android.support.v4.widget.NestedScrollView>
 </android.support.design.widget.CoordinatorLayout>

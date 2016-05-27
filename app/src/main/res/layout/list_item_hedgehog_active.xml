@@ -2,7 +2,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="288dp"
-    android:background="@color/color_light_grey"
+    android:background="@color/color_dark_grey"
+    android:elevation="@dimen/appbar_elevation"
     android:orientation="vertical">
 
     <ImageView

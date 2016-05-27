@@ -14,7 +14,8 @@
     <ImageView
         android:id="@+id/hedgehog_image"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@id/wheel_image"
         android:layout_alignBottom="@id/wheel_image"
         android:scaleType="fitCenter"
         android:src="@drawable/hedgie_1" />
