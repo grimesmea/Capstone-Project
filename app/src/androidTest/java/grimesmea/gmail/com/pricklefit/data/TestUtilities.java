@@ -25,6 +25,7 @@ public class TestUtilities extends AndroidTestCase {
     static final int TEST_HEDGEHOG_HAPPINESS_LEVEL = 3;
     static final int TEST_HEDGEHOG_FITNESS_LEVEL = 2;
     static final int TEST_HEDGEHOG_UNLOCK_STATUS = 1;
+    static final int TEST_HEDGEHOG_SELECTED_STATUS = 1;
 
     static final int BULK_INSERT_RECORDS_TO_INSERT = 6;
 
@@ -50,6 +51,7 @@ public class TestUtilities extends AndroidTestCase {
         hedgehogValues.put(HedgehogContract.HedgehogsEntry.COLUMN_HAPPINESS_LEVEL, TEST_HEDGEHOG_HAPPINESS_LEVEL);
         hedgehogValues.put(HedgehogContract.HedgehogsEntry.COLUMN_FITNESS_LEVEL, TEST_HEDGEHOG_FITNESS_LEVEL);
         hedgehogValues.put(HedgehogContract.HedgehogsEntry.COLUMN_UNLOCK_STATUS, TEST_HEDGEHOG_UNLOCK_STATUS);
+        hedgehogValues.put(HedgehogsEntry.COLUMN_SELECTED_STATUS, TEST_HEDGEHOG_SELECTED_STATUS);
 
         return hedgehogValues;
     }

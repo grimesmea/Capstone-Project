@@ -33,6 +33,7 @@ public class HedgehogContract {
         public static final String COLUMN_HAPPINESS_LEVEL = "happiness_level";
         public static final String COLUMN_FITNESS_LEVEL = "fitness_level";
         public static final String COLUMN_UNLOCK_STATUS = "unlock_status";
+        public static final String COLUMN_SELECTED_STATUS = "selected_status";
 
         public static Uri buildHedgehogUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
@@ -42,5 +43,8 @@ public class HedgehogContract {
             return CONTENT_URI.buildUpon().appendPath("unlockedHedgehogs").build();
         }
 
+        public static Uri buildSelecteHedgehogUri() {
+            return CONTENT_URI.buildUpon().appendPath("selectedHedgehog").build();
+        }
     }
 }

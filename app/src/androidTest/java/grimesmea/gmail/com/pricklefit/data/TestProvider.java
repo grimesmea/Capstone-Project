@@ -57,12 +57,16 @@ public class TestProvider extends AndroidTestCase {
                 HedgehogContract.HedgehogsEntry.CONTENT_TYPE, hedgehogsUriType);
 
         String hedgehogUriType = mContext.getContentResolver().getType(HedgehogsEntry.buildHedgehogUri(1));
-        assertEquals("Error: the HedgehogsEntry hedgehog URI should return HedgehogsEntry.CONTENT_ITEM_TYPE",
+        assertEquals("Error: the HedgehogsEntry HEDGEHOG URI should return HedgehogsEntry.CONTENT_ITEM_TYPE",
                 HedgehogsEntry.CONTENT_ITEM_TYPE, hedgehogUriType);
 
         String unlockedHedgehogsUriType = mContext.getContentResolver().getType(HedgehogsEntry.buildUnlockedHedgehogsUri());
-        assertEquals("Error: the HedgehogsEntry unlocked hedgehogs URI should return HedgehogsEntry.CONTENT_TYPE",
+        assertEquals("Error: the HedgehogsEntry UNLOCKED_HEDGEHOGS URI should return HedgehogsEntry.CONTENT_TYPE",
                 HedgehogsEntry.CONTENT_TYPE, unlockedHedgehogsUriType);
+
+        String selectedHedgehogUriType = mContext.getContentResolver().getType(HedgehogsEntry.buildSelecteHedgehogUri());
+        assertEquals("Error: the HedgehogsEntry SELECTED_HEDGEHOG URI should return HedgehogsEntry.ITEM_TYPE",
+                HedgehogsEntry.CONTENT_ITEM_TYPE, selectedHedgehogUriType);
     }
 
     public void testInsertHedgehogs() {
@@ -115,7 +119,7 @@ public class TestProvider extends AndroidTestCase {
         );
         TestUtilities.validateCursor("hedgehog by id query ", cursor, testValues);
 
-        // Test with UNLOCKED HEDGEHOGS URI
+        // Test with UNLOCKED_HEDGEHOGS URI
         cursor = mContext.getContentResolver().query(
                 HedgehogsEntry.buildUnlockedHedgehogsUri(),
                 null,
@@ -124,6 +128,16 @@ public class TestProvider extends AndroidTestCase {
                 null
         );
         TestUtilities.validateCursor("unlocked hedgehogs query", cursor, testValues);
+
+        // Test with SELECTED_HEDGEHOG URI
+        cursor = mContext.getContentResolver().query(
+                HedgehogsEntry.buildSelecteHedgehogUri(),
+                null,
+                null,
+                null,
+                null
+        );
+        TestUtilities.validateCursor("selected hedgehog query", cursor, testValues);
 
         cursor.close();
         db.close();
@@ -193,7 +207,7 @@ public class TestProvider extends AndroidTestCase {
         );
         TestUtilities.validateCursor("hedgehog update ", cursor, updatedValues);
 
-        // Test with UNLOCKED HEDGEHOGS URI
+        // Test with UNLOCKED_HEDGEHOGS URI
         cursor.registerContentObserver(testContentObserver);
         updatedValues.put(HedgehogsEntry.COLUMN_NAME, "Updated Test Hedgehog Name 3");
 
@@ -215,6 +229,29 @@ public class TestProvider extends AndroidTestCase {
                 null
         );
         TestUtilities.validateCursor("unlocked hedgehogs update ", cursor, updatedValues);
+
+        // Test with SELECTED_HEDGEHOG URI
+        cursor.registerContentObserver(testContentObserver);
+        updatedValues.put(HedgehogsEntry.COLUMN_NAME, "Updated Test Hedgehog Name 3");
+
+        count = mContext.getContentResolver().update(
+                HedgehogsEntry.buildSelecteHedgehogUri(),
+                updatedValues,
+                null,
+                null
+        );
+        assertEquals(1, count);
+        testContentObserver.waitForNotificationOrFail();
+        cursor.unregisterContentObserver(testContentObserver);
+
+        cursor = mContext.getContentResolver().query(
+                HedgehogsEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                null
+        );
+        TestUtilities.validateCursor("selected hedgehog update ", cursor, updatedValues);
     }
 
     public void testDeleteHedgehogs() {
@@ -262,7 +299,7 @@ public class TestProvider extends AndroidTestCase {
         );
         assertEquals("Error: Records not deleted from Hedgehogs table during hedgehog delete", 0, cursor.getCount());
 
-        // Test with UNLOCKED HEDGEHOGS URI
+        // Test with UNLOCKED_HEDGEHOGS URI
         rowId = TestUtilities.insertHedgehogsIntoProvider(mContext, testValues);
 
         mContext.getContentResolver().delete(

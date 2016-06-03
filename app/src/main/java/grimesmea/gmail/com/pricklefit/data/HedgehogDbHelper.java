@@ -22,14 +22,15 @@ public class HedgehogDbHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
         // Create a table to hold hedgehogs.
         final String SQL_CREATE_HEDGEHOG_TABLE = "CREATE TABLE " + HedgehogContract.HedgehogsEntry.TABLE_NAME + " (" +
-                HedgehogContract.HedgehogsEntry._ID + " INTEGER PRIMARY KEY," +
-                HedgehogContract.HedgehogsEntry.COLUMN_NAME + " TEXT UNIQUE NOT NULL, " +
-                HedgehogContract.HedgehogsEntry.COLUMN_IMAGE_NAME + " TEXT UNIQUE NOT NULL, " +
+                HedgehogsEntry._ID + " INTEGER PRIMARY KEY," +
+                HedgehogsEntry.COLUMN_NAME + " TEXT UNIQUE NOT NULL, " +
+                HedgehogsEntry.COLUMN_IMAGE_NAME + " TEXT UNIQUE NOT NULL, " +
                 HedgehogsEntry.COLUMN_SILHOUETTE_IMAGE_NAME + " TEXT UNIQUE NOT NULL, " +
-                HedgehogContract.HedgehogsEntry.COLUMN_DESCRIPTION + " TEXT UNIQUE NOT NULL, " +
-                HedgehogContract.HedgehogsEntry.COLUMN_HAPPINESS_LEVEL + " INTEGER NOT NULL, " +
-                HedgehogContract.HedgehogsEntry.COLUMN_FITNESS_LEVEL + " INTEGER NOT NULL, " +
-                HedgehogContract.HedgehogsEntry.COLUMN_UNLOCK_STATUS + " INTEGER NOT NULL " +
+                HedgehogsEntry.COLUMN_DESCRIPTION + " TEXT UNIQUE NOT NULL, " +
+                HedgehogsEntry.COLUMN_HAPPINESS_LEVEL + " INTEGER NOT NULL, " +
+                HedgehogsEntry.COLUMN_FITNESS_LEVEL + " INTEGER NOT NULL, " +
+                HedgehogsEntry.COLUMN_UNLOCK_STATUS + " INTEGER NOT NULL, " +
+                HedgehogsEntry.COLUMN_SELECTED_STATUS + " INTEGER NOT NULL " +
                 " );";
 
         sqLiteDatabase.execSQL(SQL_CREATE_HEDGEHOG_TABLE);

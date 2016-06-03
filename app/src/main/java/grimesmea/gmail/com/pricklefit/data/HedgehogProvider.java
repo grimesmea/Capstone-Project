@@ -16,6 +16,7 @@ public class HedgehogProvider extends ContentProvider {
     static final int HEDGEHOGS = 100;
     static final int HEDGEHOG = 101;
     static final int UNLOCKED_HEDGEHOGS = 200;
+    static final int SELECTED_HEDGEHOG = 300;
 
     // The URI Matcher used by this content provider.
     private static final UriMatcher sUriMatcher = buildUriMatcher();
@@ -26,6 +27,9 @@ public class HedgehogProvider extends ContentProvider {
     private static final String unlockedHedgehogsSelection =
             HedgehogsEntry.TABLE_NAME +
                     "." + HedgehogsEntry.COLUMN_UNLOCK_STATUS + " = 1";
+    private static final String selectedHedgehogSelection =
+            HedgehogsEntry.TABLE_NAME +
+                    "." + HedgehogsEntry.COLUMN_SELECTED_STATUS + " = 1";
 
     private HedgehogDbHelper mOpenHelper;
 
@@ -39,6 +43,7 @@ public class HedgehogProvider extends ContentProvider {
         matcher.addURI(authority, HedgehogContract.PATH_HEDGEHOG, HEDGEHOGS);
         matcher.addURI(authority, HedgehogContract.PATH_HEDGEHOG + "/#", HEDGEHOG);
         matcher.addURI(authority, HedgehogContract.PATH_HEDGEHOG + "/unlockedHedgehogs", UNLOCKED_HEDGEHOGS);
+        matcher.addURI(authority, HedgehogContract.PATH_HEDGEHOG + "/selectedHedgehog", SELECTED_HEDGEHOG);
         return matcher;
     }
 
@@ -59,6 +64,8 @@ public class HedgehogProvider extends ContentProvider {
                 return HedgehogsEntry.CONTENT_ITEM_TYPE;
             case UNLOCKED_HEDGEHOGS:
                 return HedgehogsEntry.CONTENT_TYPE;
+            case SELECTED_HEDGEHOG:
+                return HedgehogsEntry.CONTENT_ITEM_TYPE;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -104,6 +111,19 @@ public class HedgehogProvider extends ContentProvider {
                         null,
                         null,
                         sortOrder
+                );
+                break;
+            }
+            case SELECTED_HEDGEHOG: {
+                retCursor = mOpenHelper.getReadableDatabase().query(
+                        HedgehogsEntry.TABLE_NAME,
+                        projection,
+                        selectedHedgehogSelection,
+                        null,
+                        null,
+                        null,
+                        sortOrder,
+                        "1"
                 );
                 break;
             }
@@ -209,6 +229,15 @@ public class HedgehogProvider extends ContentProvider {
                         HedgehogsEntry.TABLE_NAME,
                         values,
                         unlockedHedgehogsSelection,
+                        selectionArgs
+                );
+                break;
+            }
+            case SELECTED_HEDGEHOG: {
+                rowsUpdated = db.update(
+                        HedgehogsEntry.TABLE_NAME,
+                        values,
+                        selectedHedgehogSelection,
                         selectionArgs
                 );
                 break;

@@ -58,6 +58,7 @@ public class TestDb extends AndroidTestCase {
         hedgehogsColumnHashSet.add(HedgehogsEntry.COLUMN_HAPPINESS_LEVEL);
         hedgehogsColumnHashSet.add(HedgehogsEntry.COLUMN_FITNESS_LEVEL);
         hedgehogsColumnHashSet.add(HedgehogsEntry.COLUMN_UNLOCK_STATUS);
+        hedgehogsColumnHashSet.add(HedgehogsEntry.COLUMN_SELECTED_STATUS);
 
         int columnNameIndex = cursor.getColumnIndex("name");
         do {
