@@ -1,0 +1,34 @@
+{
+  "hedgehogs": [
+    {
+      "name": "Gigi",
+      "image_name": "hedgie_1",
+      "silhouette_image_name": "hedgehog_1_silhouette",
+      "description": "null",
+      "happiness_level": 3,
+      "fitness_level": 0,
+      "unlock_status": true,
+      "selected_status": true
+    },
+    {
+      "name": "Tim",
+      "image_name": "hedgie_2",
+      "silhouette_image_name": "hedgehog_2_silhouette",
+      "description": "null",
+      "happiness_level": 1,
+      "fitness_level": 1,
+      "unlock_status": false,
+      "selected_status": false
+    },
+    {
+      "name": "Ori",
+      "image_name": "hedgie_3",
+      "silhouette_image_name": "hedgehog_3_silhouette",
+      "description": "null",
+      "happiness_level": 1,
+      "fitness_level": 2,
+      "unlock_status": false,
+      "selected_status": false
+    }
+  ]
+}
