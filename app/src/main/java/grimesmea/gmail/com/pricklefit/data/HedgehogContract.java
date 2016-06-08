@@ -43,7 +43,7 @@ public class HedgehogContract {
             return CONTENT_URI.buildUpon().appendPath("unlockedHedgehogs").build();
         }
 
-        public static Uri buildSelecteHedgehogUri() {
+        public static Uri buildSelectedHedgehogUri() {
             return CONTENT_URI.buildUpon().appendPath("selectedHedgehog").build();
         }
     }

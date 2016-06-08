@@ -64,7 +64,7 @@ public class TestProvider extends AndroidTestCase {
         assertEquals("Error: the HedgehogsEntry UNLOCKED_HEDGEHOGS URI should return HedgehogsEntry.CONTENT_TYPE",
                 HedgehogsEntry.CONTENT_TYPE, unlockedHedgehogsUriType);
 
-        String selectedHedgehogUriType = mContext.getContentResolver().getType(HedgehogsEntry.buildSelecteHedgehogUri());
+        String selectedHedgehogUriType = mContext.getContentResolver().getType(HedgehogsEntry.buildSelectedHedgehogUri());
         assertEquals("Error: the HedgehogsEntry SELECTED_HEDGEHOG URI should return HedgehogsEntry.ITEM_TYPE",
                 HedgehogsEntry.CONTENT_ITEM_TYPE, selectedHedgehogUriType);
     }
@@ -131,7 +131,7 @@ public class TestProvider extends AndroidTestCase {
 
         // Test with SELECTED_HEDGEHOG URI
         cursor = mContext.getContentResolver().query(
-                HedgehogsEntry.buildSelecteHedgehogUri(),
+                HedgehogsEntry.buildSelectedHedgehogUri(),
                 null,
                 null,
                 null,
@@ -235,7 +235,7 @@ public class TestProvider extends AndroidTestCase {
         updatedValues.put(HedgehogsEntry.COLUMN_NAME, "Updated Test Hedgehog Name 3");
 
         count = mContext.getContentResolver().update(
-                HedgehogsEntry.buildSelecteHedgehogUri(),
+                HedgehogsEntry.buildSelectedHedgehogUri(),
                 updatedValues,
                 null,
                 null

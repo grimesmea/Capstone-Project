@@ -26,7 +26,7 @@ public class HedgehogDbHelper extends SQLiteOpenHelper {
                 HedgehogsEntry.COLUMN_NAME + " TEXT UNIQUE NOT NULL, " +
                 HedgehogsEntry.COLUMN_IMAGE_NAME + " TEXT UNIQUE NOT NULL, " +
                 HedgehogsEntry.COLUMN_SILHOUETTE_IMAGE_NAME + " TEXT UNIQUE NOT NULL, " +
-                HedgehogsEntry.COLUMN_DESCRIPTION + " TEXT UNIQUE NOT NULL, " +
+                HedgehogsEntry.COLUMN_DESCRIPTION + " TEXT NOT NULL, " +
                 HedgehogsEntry.COLUMN_HAPPINESS_LEVEL + " INTEGER NOT NULL, " +
                 HedgehogsEntry.COLUMN_FITNESS_LEVEL + " INTEGER NOT NULL, " +
                 HedgehogsEntry.COLUMN_UNLOCK_STATUS + " INTEGER NOT NULL, " +

@@ -11,7 +11,7 @@ public class TestUriMatcher extends AndroidTestCase {
     private static final Uri TEST_HEDGEHOGS_DIR = HedgehogContract.HedgehogsEntry.CONTENT_URI;
     private static final Uri TEST_HEDGEHOG_DIR = HedgehogsEntry.buildHedgehogUri(1);
     private static final Uri TEST_UNLOCKED_HEDGEHOGS_DIR = HedgehogsEntry.buildUnlockedHedgehogsUri();
-    private static final Uri TEST_SELECTED_HEDGEHOG_DIR = HedgehogsEntry.buildSelecteHedgehogUri();
+    private static final Uri TEST_SELECTED_HEDGEHOG_DIR = HedgehogsEntry.buildSelectedHedgehogUri();
 
     public void testUriMatcher() {
         UriMatcher testUriMatcher = HedgehogProvider.buildUriMatcher();
