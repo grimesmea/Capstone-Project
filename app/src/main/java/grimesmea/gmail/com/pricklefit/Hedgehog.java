@@ -131,7 +131,15 @@ public class Hedgehog implements Parcelable {
         return imageName;
     }
 
-    public String getSilhouetteImageNameImageName() {
+    public String getSilhouetteImageName() {
         return silhouetteImageName;
+    }
+
+    public int getHappinessLevel() {
+        return happinessLevel;
+    }
+
+    public boolean getIsUnlocked() {
+        return isUnlocked;
     }
 }

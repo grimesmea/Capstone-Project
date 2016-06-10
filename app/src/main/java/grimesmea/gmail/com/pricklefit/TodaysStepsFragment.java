@@ -92,12 +92,12 @@ public class TodaysStepsFragment extends Fragment implements LoaderManager.Loade
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         if (data.moveToFirst()) {
             selectedHedgehog = new Hedgehog(data);
-            int imageResource = getResources().getIdentifier(selectedHedgehog.getImageName(), "drawable", getContext().getPackageName());
+            int hedgehogImageResource = getResources().getIdentifier(selectedHedgehog.getImageName(), "drawable", getContext().getPackageName());
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                hedgehogDrawable = getResources().getDrawable(imageResource, getContext().getTheme());
+                hedgehogDrawable = getResources().getDrawable(hedgehogImageResource, getContext().getTheme());
             } else {
-                hedgehogDrawable = getResources().getDrawable(imageResource);
+                hedgehogDrawable = getResources().getDrawable(hedgehogImageResource);
             }
 
             hedgehogImageView.setImageDrawable(hedgehogDrawable);

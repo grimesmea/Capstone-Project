@@ -1,20 +1,29 @@
 package grimesmea.gmail.com.pricklefit;
 
 
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import grimesmea.gmail.com.pricklefit.data.HedgehogContract;
 
 
 /**
  * Displays hedgehogs in a {@link android.support.v7.widget.RecyclerView} layout.
  */
-public class HedgehogCollectionFragment extends Fragment {
+public class HedgehogCollectionFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
+    private static final int HEDGEHOGS_LOADER = 200;
+    private final String LOG_TAG = HedgehogCollectionFragment.class.getSimpleName();
     HedgehogCollectionAdapter mHedgehogCollectionAdapter;
 
     public HedgehogCollectionFragment() {
@@ -38,7 +47,34 @@ public class HedgehogCollectionFragment extends Fragment {
                 new StaggeredGridLayoutManager(columnCount, StaggeredGridLayoutManager.VERTICAL);
         mRecyclerView.setLayoutManager(sglm);
 
+        getLoaderManager().initLoader(HEDGEHOGS_LOADER, null, this);
+
         return rootView;
     }
 
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        Log.d(LOG_TAG, "onCreateLoader");
+        CursorLoader cursorLoader = new CursorLoader(
+                getContext(),
+                HedgehogContract.HedgehogsEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                null
+        );
+
+        return cursorLoader;
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        mHedgehogCollectionAdapter.swapCursor(data);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        mHedgehogCollectionAdapter.swapCursor(null);
+    }
 }

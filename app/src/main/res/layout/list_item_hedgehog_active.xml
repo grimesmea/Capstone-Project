@@ -32,8 +32,7 @@
             android:layout_width="24dp"
             android:layout_height="match_parent"
             android:layout_centerInParent="true"
-            android:scaleType="fitCenter"
-            android:src="@drawable/heart_filled" />
+            android:scaleType="fitCenter" />
 
         <ImageView
             android:id="@+id/heart_2"
@@ -43,8 +42,7 @@
             android:layout_marginRight="6dp"
             android:layout_toLeftOf="@id/heart_3"
             android:layout_toStartOf="@id/heart_3"
-            android:scaleType="fitCenter"
-            android:src="@drawable/heart_filled" />
+            android:scaleType="fitCenter" />
 
         <ImageView
             android:id="@+id/heart_1"
@@ -54,8 +52,7 @@
             android:layout_marginRight="6dp"
             android:layout_toLeftOf="@id/heart_2"
             android:layout_toStartOf="@id/heart_2"
-            android:scaleType="fitCenter"
-            android:src="@drawable/heart_filled" />
+            android:scaleType="fitCenter" />
 
         <ImageView
             android:id="@+id/heart_4"
@@ -65,8 +62,7 @@
             android:layout_marginStart="6dp"
             android:layout_toEndOf="@id/heart_3"
             android:layout_toRightOf="@id/heart_3"
-            android:scaleType="fitCenter"
-            android:src="@drawable/heart_filled" />
+            android:scaleType="fitCenter" />
 
         <ImageView
             android:id="@+id/heart_5"
@@ -76,7 +72,6 @@
             android:layout_marginStart="6dp"
             android:layout_toEndOf="@id/heart_4"
             android:layout_toRightOf="@id/heart_4"
-            android:scaleType="fitCenter"
-            android:src="@drawable/heart_outline" />
+            android:scaleType="fitCenter" />
     </RelativeLayout>
 </LinearLayout>
