@@ -127,6 +127,10 @@ public class Hedgehog implements Parcelable {
         parcel.writeByte((byte) (isSelected ? 1 : 0));
     }
 
+    public String getName() {
+        return name;
+    }
+
     public String getImageName() {
         return imageName;
     }
@@ -135,8 +139,16 @@ public class Hedgehog implements Parcelable {
         return silhouetteImageName;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
     public int getHappinessLevel() {
         return happinessLevel;
+    }
+
+    public int getFitnessLevelLevel() {
+        return fitnessLevel;
     }
 
     public boolean getIsUnlocked() {

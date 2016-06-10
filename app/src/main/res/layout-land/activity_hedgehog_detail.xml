@@ -50,9 +50,8 @@
         app:behavior_overlapTop="64dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <fragment
-            android:id="@+id/hedgie_collection"
-            android:name="grimesmea.gmail.com.pricklefit.HedgehogDetailFragment"
+        <FrameLayout
+            android:id="@+id/hedgehog_detail_container"
             android:layout_width="360dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
