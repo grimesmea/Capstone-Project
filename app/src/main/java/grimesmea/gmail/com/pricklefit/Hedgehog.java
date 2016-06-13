@@ -154,4 +154,8 @@ public class Hedgehog implements Parcelable {
     public boolean getIsUnlocked() {
         return isUnlocked;
     }
+
+    public boolean getIsSelected() {
+        return isSelected;
+    }
 }

@@ -1,6 +1,7 @@
 package grimesmea.gmail.com.pricklefit;
 
 
+import android.content.ContentValues;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
@@ -12,6 +13,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+
+import grimesmea.gmail.com.pricklefit.data.HedgehogContract.HedgehogsEntry;
 
 
 /**
@@ -35,11 +38,14 @@ public class HedgehogDetailFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setHasOptionsMenu(true);
 
         Bundle arguments = getArguments();
         if (arguments != null) {
             hedgehog = arguments.getParcelable("hedgehogParcelable");
+        }
+
+        if (hedgehog.getIsUnlocked() && !hedgehog.getIsSelected()) {
+            setHasOptionsMenu(true);
         }
 
         getActivity().setTitle(hedgehog.getName());
@@ -52,10 +58,38 @@ public class HedgehogDetailFragment extends Fragment {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        //TODO: Handle clicks to set active hedgehog.
-        int id = item.getItemId();
+        switch (item.getItemId()) {
+            case R.id.action_set_active:
+                if (!item.isChecked() && hedgehog.getIsUnlocked()) {
+                    item.setChecked(true);
+                    setSelectedHedgehogInContentProvider(hedgehog);
+                }
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
 
-        return super.onOptionsItemSelected(item);
+    public void setSelectedHedgehogInContentProvider(Hedgehog hedgehog) {
+        ContentValues selectedValue = new ContentValues();
+        ContentValues unselectedValue = new ContentValues();
+
+        selectedValue.put(HedgehogsEntry.COLUMN_SELECTED_STATUS, (byte) 1);
+        unselectedValue.put(HedgehogsEntry.COLUMN_SELECTED_STATUS, (byte) 0);
+
+        getActivity().getContentResolver().update(
+                HedgehogsEntry.CONTENT_URI,
+                selectedValue,
+                HedgehogsEntry.COLUMN_SELECTED_STATUS + "= ?",
+                new String[]{Integer.toString(1)}
+        );
+
+        getActivity().getContentResolver().update(
+                HedgehogsEntry.CONTENT_URI,
+                selectedValue,
+                HedgehogsEntry.COLUMN_NAME + "= ?",
+                new String[]{hedgehog.getName()}
+        );
     }
 
     @Override
