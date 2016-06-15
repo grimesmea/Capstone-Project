@@ -1,10 +1,12 @@
 package grimesmea.gmail.com.pricklefit;
 
 
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -14,6 +16,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import grimesmea.gmail.com.pricklefit.data.HedgehogContract.HedgehogsEntry;
 
@@ -34,6 +37,7 @@ public class TodaysStepsFragment extends Fragment implements LoaderManager.Loade
     private static final int SELECTED_HEDGEHOG_LOADER = 100;
     private final String LOG_TAG = TodaysStepsFragment.class.getSimpleName();
     private ImageView hedgehogImageView;
+    private TextView dailyStepGoalTextView;
     private Hedgehog selectedHedgehog;
     private Drawable hedgehogDrawable;
 
@@ -67,6 +71,20 @@ public class TodaysStepsFragment extends Fragment implements LoaderManager.Loade
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_todays_steps, container, false);
         hedgehogImageView = (ImageView) rootView.findViewById(R.id.hedgehog_image);
+        dailyStepGoalTextView = (TextView) rootView.findViewById(R.id.daily_step_goal);
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
+        String dailyStepGoalStr = prefs.getString(getContext().getString(R.string.pref_step_goal_key),
+                getContext().getString(R.string.pref_step_goal_default));
+        int dailyStepGoal = 0;
+
+        try {
+            dailyStepGoal = Integer.parseInt(dailyStepGoalStr);
+        } catch (NumberFormatException nfe) {
+            System.out.println("Could not parse " + nfe);
+        }
+        dailyStepGoalTextView.setText(String.format("%,d", dailyStepGoal));
+
         getLoaderManager().initLoader(SELECTED_HEDGEHOG_LOADER, null, this);
 
         return rootView;

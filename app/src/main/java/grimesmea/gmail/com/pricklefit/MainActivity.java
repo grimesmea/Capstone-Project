@@ -144,7 +144,7 @@ public class MainActivity extends AppCompatActivity
                 .build();
     }
 
-    private void getTodaysStepCount(){
+    private void getTodaysStepCount() {
         PendingResult<DailyTotalResult> stepsResult = Fitness.HistoryApi
                 .readDailyTotal(mApiClient, DataType.TYPE_STEP_COUNT_DELTA);
         stepsResult.setResultCallback(new ResultCallback() {
@@ -216,7 +216,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private void updateStepCountTextView(int currentStepCount){
+    private void updateStepCountTextView(int currentStepCount) {
         todaysStepsTextView.setText(String.format("%,d", currentStepCount));
     }
 
@@ -243,7 +243,8 @@ public class MainActivity extends AppCompatActivity
             Intent intent = new Intent(this, HedgehogCollectionActivity.class);
             startActivity(intent);
         } else if (id == R.id.nav_settings) {
-
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
