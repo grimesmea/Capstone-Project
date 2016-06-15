@@ -8,6 +8,7 @@
     <string name="action_settings">Settings</string>
     <string name="hedgehog_wheel_description">Hedgehog on exercise wheel</string>
     <string name="todays_steps_label">steps today</string>
+    <string name="todays_step_count">0</string>
 
     <!--Week's Stats Activity-->
     <string name="title_activity_weeks_stats">Week\'s Stats</string>
