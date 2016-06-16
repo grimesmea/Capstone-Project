@@ -97,7 +97,7 @@ public class MainActivity extends AppCompatActivity
                         // Subscribe to the Google Fit Recordings API for TYPE_STEP_COUNT_DELTA data.
                         subscribeToRecordingApi();
 
-                        // Find and list to sensors data using the Google Fit Sensors API for
+                        // Find and list sensors data sources using the Google Fit Sensors API for
                         // TYPE_STEP_COUNT_DELTA data.
                         DataSourcesRequest dataSourceRequest = new DataSourcesRequest.Builder()
                                 .setDataTypes(DataType.TYPE_STEP_COUNT_DELTA)
@@ -156,6 +156,7 @@ public class MainActivity extends AppCompatActivity
                     todaysStepCount = totalSet.isEmpty()
                             ? 0
                             : totalSet.getDataPoints().get(0).getValue(Field.FIELD_STEPS).asInt();
+                    Log.d(LOG_TAG, "DAILY TOTAL " + Integer.toString(todaysStepCount));
                     updateStepCountTextView(todaysStepCount);
                 }
             }
@@ -208,9 +209,11 @@ public class MainActivity extends AppCompatActivity
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    Log.d(LOG_TAG, "DELTA STEPS - " + Integer.toString(value.asInt()));
-                    todaysStepCount += value.asInt();
-                    updateStepCountTextView(todaysStepCount);
+                    Log.d(LOG_TAG, "DELTA STEPS " + Integer.toString(value.asInt()));
+                    if (value.asInt() > 0) {
+                        todaysStepCount += value.asInt();
+                        updateStepCountTextView(todaysStepCount);
+                    }
                 }
             });
         }

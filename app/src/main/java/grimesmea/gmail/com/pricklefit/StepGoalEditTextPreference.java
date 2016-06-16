@@ -13,7 +13,7 @@ import android.widget.Button;
 import android.widget.EditText;
 
 /**
- * Created by comrade.marie on 6/15/2016.
+ * Custom EditTextPreference class for a user's daily step goal.
  */
 public class StepGoalEditTextPreference extends EditTextPreference {
 

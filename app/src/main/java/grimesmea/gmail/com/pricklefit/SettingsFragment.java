@@ -7,10 +7,9 @@ import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
-import android.support.v4.app.Fragment;
 
 /**
- * A simple {@link Fragment} subclass.
+ * Displays and manages changes to settings shared preferences.
  */
 public class SettingsFragment extends PreferenceFragment implements
         Preference.OnPreferenceChangeListener, SharedPreferences.OnSharedPreferenceChangeListener {
@@ -24,7 +23,7 @@ public class SettingsFragment extends PreferenceFragment implements
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        addPreferencesFromResource(R.xml.shared_prefs);
+        addPreferencesFromResource(R.xml.settings_prefs);
 
         Preference stepGoalPref = findPreference(getString(R.string.pref_step_goal_key));
         Preference notificationsPref = findPreference(getString(R.string.pref_enable_notifications_key));
