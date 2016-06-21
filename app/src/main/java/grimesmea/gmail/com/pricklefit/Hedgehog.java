@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -24,6 +25,7 @@ public class Hedgehog implements Parcelable {
         }
     };
 
+    final static String ID = "id";
     final static String NAME = "name";
     final static String IMAGE_NAME = "image_name";
     final static String SILHOUETTE_IMAGE_NAME = "silhouette_image_name";
@@ -33,6 +35,7 @@ public class Hedgehog implements Parcelable {
     final static String IS_UNLOCKED = "unlock_status";
     final static String IS_SELECTED = "selected_status";
 
+    int id;
     String name;
     String imageName;
     String silhouetteImageName;
@@ -55,17 +58,31 @@ public class Hedgehog implements Parcelable {
         );
     }
 
-    public Hedgehog(Cursor hedgehogCursor) {
+    public Hedgehog(Cursor cursor) {
         this(
-                hedgehogCursor.getString(TodaysStepsFragment.COL_HEDGEHOG_NAME),
-                hedgehogCursor.getString(TodaysStepsFragment.COL_HEDGEHOG_IMAGE_NAME),
-                hedgehogCursor.getString(TodaysStepsFragment.COL_HEDGEHOG_SILHOUETTE_IMAGE_NAME),
-                hedgehogCursor.getString(TodaysStepsFragment.COL_HEDGEHOG_DESCRIPTION),
-                hedgehogCursor.getInt(TodaysStepsFragment.COL_HEDGEHOG_HAPPINESS_LEVEL),
-                hedgehogCursor.getInt(TodaysStepsFragment.COL_HEDGEHOG_FITNESS_LEVEL),
-                getBooleanValue(hedgehogCursor.getInt(TodaysStepsFragment.COL_HEDGEHOG_UNLOCK_STATUS)),
-                getBooleanValue(hedgehogCursor.getInt(TodaysStepsFragment.COL_HEDGEHOG_SELECTED_STATUS))
+                cursor.getInt(TodaysStepsFragment.COL_HEDGEHOG_ID),
+                cursor.getString(TodaysStepsFragment.COL_HEDGEHOG_NAME),
+                cursor.getString(TodaysStepsFragment.COL_HEDGEHOG_IMAGE_NAME),
+                cursor.getString(TodaysStepsFragment.COL_HEDGEHOG_SILHOUETTE_IMAGE_NAME),
+                cursor.getString(TodaysStepsFragment.COL_HEDGEHOG_DESCRIPTION),
+                cursor.getInt(TodaysStepsFragment.COL_HEDGEHOG_HAPPINESS_LEVEL),
+                cursor.getInt(TodaysStepsFragment.COL_HEDGEHOG_FITNESS_LEVEL),
+                getBooleanValue(cursor.getInt(TodaysStepsFragment.COL_HEDGEHOG_UNLOCK_STATUS)),
+                getBooleanValue(cursor.getInt(TodaysStepsFragment.COL_HEDGEHOG_SELECTED_STATUS))
         );
+    }
+
+    public Hedgehog(int id, String name, String imageName, String silhouetteImageName, String description,
+                    int happinessLevel, int fitnessLevel, boolean isUnlocked, boolean isSelected) {
+        this.id = id;
+        this.name = name;
+        this.imageName = imageName;
+        this.silhouetteImageName = silhouetteImageName;
+        this.description = description;
+        this.happinessLevel = happinessLevel;
+        this.fitnessLevel = fitnessLevel;
+        this.isUnlocked = isUnlocked;
+        this.isSelected = isSelected;
     }
 
     public Hedgehog(String name, String imageName, String silhouetteImageName, String description,
@@ -81,6 +98,7 @@ public class Hedgehog implements Parcelable {
     }
 
     private Hedgehog(Parcel parcel) {
+        id = parcel.readInt();
         name = parcel.readString();
         imageName = parcel.readString();
         silhouetteImageName = parcel.readString();
@@ -117,6 +135,7 @@ public class Hedgehog implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel parcel, int flags) {
+        parcel.writeInt(id);
         parcel.writeString(name);
         parcel.writeString(imageName);
         parcel.writeString(silhouetteImageName);
@@ -125,6 +144,10 @@ public class Hedgehog implements Parcelable {
         parcel.writeInt(fitnessLevel);
         parcel.writeByte((byte) (isUnlocked ? 1 : 0));
         parcel.writeByte((byte) (isSelected ? 1 : 0));
+    }
+
+    public int getId() {
+        return id;
     }
 
     public String getName() {
@@ -140,6 +163,7 @@ public class Hedgehog implements Parcelable {
     }
 
     public String getDescription() {
+        Log.d("Hedgehog Description", description);
         return description;
     }
 

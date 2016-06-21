@@ -18,8 +18,7 @@
         android:adjustViewBounds="true"
         android:paddingBottom="16dp"
         android:paddingTop="16dp"
-        android:scaleType="fitCenter"
-        android:src="@drawable/hedgie_1_cropped" />
+        android:scaleType="fitCenter" />
 
     <RelativeLayout
         android:id="@+id/hedgie_hearts"
@@ -79,13 +78,12 @@
     </RelativeLayout>
 
     <TextView
-        android:id="@+id/hedgehog_activity_level"
+        android:id="@+id/hedgehog_personality"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_gravity="center"
         android:layout_marginTop="16dp"
         android:layout_weight="2"
-        android:text="Gigi is young energetic hedgehog who loves to play. Be sure to get meet your goals in order to keep her health and happy."
         android:textAlignment="center"
         android:textSize="24sp" />
 </LinearLayout>

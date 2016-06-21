@@ -26,6 +26,7 @@ import grimesmea.gmail.com.pricklefit.data.HedgehogContract.HedgehogsEntry;
  */
 public class TodaysStepsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
+    static final int COL_HEDGEHOG_ID = 0;
     static final int COL_HEDGEHOG_NAME = 1;
     static final int COL_HEDGEHOG_IMAGE_NAME = 2;
     static final int COL_HEDGEHOG_SILHOUETTE_IMAGE_NAME = 3;

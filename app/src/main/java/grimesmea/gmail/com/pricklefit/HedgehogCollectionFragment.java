@@ -2,6 +2,7 @@ package grimesmea.gmail.com.pricklefit;
 
 
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
@@ -39,7 +40,16 @@ public class HedgehogCollectionFragment extends Fragment implements LoaderManage
         RecyclerView mRecyclerView = (RecyclerView) rootView.findViewById(R.id.recyclerview_hedgehog_collection);
         View emptyView = rootView.findViewById(R.id.recyclerview_hedgehog_collection_empty);
 
-        mHedgehogCollectionAdapter = new HedgehogCollectionAdapter(getActivity(), emptyView);
+        mHedgehogCollectionAdapter = new HedgehogCollectionAdapter(
+                getActivity(), new HedgehogCollectionAdapter.HedgehogCollectionAdapterOnClickHandler() {
+            @Override
+            public void onClick(int hedgehogId) {
+                ((Callback) getActivity())
+                        .onItemSelected(HedgehogContract.HedgehogsEntry.buildHedgehogUri(
+                                hedgehogId));
+            }
+        },
+                emptyView);
         mRecyclerView.setAdapter(mHedgehogCollectionAdapter);
 
         int columnCount = getResources().getInteger(R.integer.list_column_count);
@@ -76,5 +86,17 @@ public class HedgehogCollectionFragment extends Fragment implements LoaderManage
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         mHedgehogCollectionAdapter.swapCursor(null);
+    }
+
+    /**
+     * A callback interface that all activities containing this fragment must
+     * implement. This mechanism allows activities to be notified of item
+     * selections.
+     */
+    public interface Callback {
+        /**
+         * DetailFragmentCallback for when an item has been selected.
+         */
+        public void onItemSelected(Uri hedgehogUri);
     }
 }

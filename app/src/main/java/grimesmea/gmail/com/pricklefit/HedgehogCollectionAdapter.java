@@ -1,32 +1,32 @@
 package grimesmea.gmail.com.pricklefit;
 
 import android.content.Context;
-import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
-import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 
 /**
  * {@link HedgehogCollectionAdapter} exposes a list of hedgehogs from a
  * {@link android.database.Cursor} to a {@link android.support.v7.widget.RecyclerView}.
  */
-public class HedgehogCollectionAdapter extends RecyclerView.Adapter<HedgehogCollectionAdapter.HedgieCollectionAdapterViewHolder> {
+public class HedgehogCollectionAdapter extends RecyclerView.Adapter<HedgehogCollectionAdapter.HedgehogCollectionAdapterViewHolder> {
 
     private static final int VIEW_TYPE_ACTIVE_HEDGEHOG = 0;
     private static final int VIEW_TYPE_INACTIVE_HEDGEHOG = 1;
-
+    private final String LOG_TAG = HedgehogCollectionAdapter.class.getSimpleName();
     final private Context mContext;
     final private View mEmptyView;
+    final private HedgehogCollectionAdapterOnClickHandler mClickHandler;
 
     private Cursor mCursor;
+    private LinearLayout hedgehogContainer;
     private ImageView hedgehogImageView;
     private ImageView heartImage1;
     private ImageView heartImage2;
@@ -36,13 +36,14 @@ public class HedgehogCollectionAdapter extends RecyclerView.Adapter<HedgehogColl
     private ImageView[] heartImageViews;
 
 
-    public HedgehogCollectionAdapter(Context context, View emptyView) {
+    public HedgehogCollectionAdapter(Context context, HedgehogCollectionAdapterOnClickHandler onClickHandler, View emptyView) {
         mContext = context;
+        mClickHandler = onClickHandler;
         mEmptyView = emptyView;
     }
 
     @Override
-    public HedgieCollectionAdapterViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
+    public HedgehogCollectionAdapterViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
         if (viewGroup instanceof RecyclerView) {
             int layoutId = -1;
             switch (viewType) {
@@ -57,31 +58,32 @@ public class HedgehogCollectionAdapter extends RecyclerView.Adapter<HedgehogColl
             }
 
             View view = LayoutInflater.from(viewGroup.getContext()).inflate(layoutId, viewGroup, false);
-            HedgieCollectionAdapterViewHolder hedgieCollectionAdapterViewHolder = new HedgieCollectionAdapterViewHolder(view);
+            HedgehogCollectionAdapterViewHolder hedgehogCollectionAdapterViewHolder = new HedgehogCollectionAdapterViewHolder(view);
 
             if (viewType == VIEW_TYPE_ACTIVE_HEDGEHOG) {
-                StaggeredGridLayoutManager.LayoutParams layoutParams = (StaggeredGridLayoutManager.LayoutParams) hedgieCollectionAdapterViewHolder.itemView.getLayoutParams();
+                StaggeredGridLayoutManager.LayoutParams layoutParams = (StaggeredGridLayoutManager.LayoutParams) hedgehogCollectionAdapterViewHolder.itemView.getLayoutParams();
                 layoutParams.setFullSpan(true);
             }
 
-            return hedgieCollectionAdapterViewHolder;
+            return hedgehogCollectionAdapterViewHolder;
         } else {
             throw new RuntimeException("Not bound to RecyclerView");
         }
     }
 
     @Override
-    public void onBindViewHolder(HedgieCollectionAdapterViewHolder hedgieCollectionAdapterViewHolder, int position) {
-        final Hedgehog hedgehog;
-
-        int hedgehogImageResource;
-        Drawable hedgehogDrawable;
-
+    public void onBindViewHolder(HedgehogCollectionAdapterViewHolder viewHolder, int position) {
         mEmptyView.setVisibility(getItemCount() == 0 ? View.VISIBLE : View.GONE);
 
         mCursor.moveToPosition(position);
-        hedgehog = new Hedgehog(mCursor);
-        Log.d("HCAdapter", hedgehog.getSilhouetteImageName());
+
+        Hedgehog hedgehog = new Hedgehog(mCursor);
+        updateHedgehogViews(hedgehog);
+    }
+
+    private void updateHedgehogViews(final Hedgehog hedgehog) {
+        int hedgehogImageResource;
+        Drawable hedgehogDrawable;
 
         if (hedgehog.getIsUnlocked()) {
             hedgehogImageResource = mContext.getResources().getIdentifier(hedgehog.getImageName(), "drawable", mContext.getPackageName());
@@ -99,8 +101,6 @@ public class HedgehogCollectionAdapter extends RecyclerView.Adapter<HedgehogColl
             }
         }
 
-        Log.d("HCAdapter", String.valueOf(hedgehogImageResource));
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             hedgehogDrawable = mContext.getResources().getDrawable(hedgehogImageResource, mContext.getTheme());
         } else {
@@ -108,15 +108,10 @@ public class HedgehogCollectionAdapter extends RecyclerView.Adapter<HedgehogColl
         }
 
         hedgehogImageView.setImageDrawable(hedgehogDrawable);
-        hedgehogImageView.setOnClickListener(new View.OnClickListener() {
+        hedgehogContainer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Bundle args = new Bundle();
-                args.putParcelable("hedgehogParcelable", hedgehog);
-
-                Intent intent = new Intent(mContext, HedgehogDetailActivity.class)
-                        .putExtra("hedgehog", args);
-                mContext.startActivity(intent);
+                mClickHandler.onClick(hedgehog.getId());
             }
         });
     }
@@ -142,17 +137,18 @@ public class HedgehogCollectionAdapter extends RecyclerView.Adapter<HedgehogColl
         mEmptyView.setVisibility(getItemCount() == 0 ? View.VISIBLE : View.GONE);
     }
 
-    public Cursor getCursor() {
-        return mCursor;
+    public interface HedgehogCollectionAdapterOnClickHandler {
+        void onClick(int hedgehogId);
     }
 
     /**
      * Cache of the children views for a hedgehog list item.
      */
-    public class HedgieCollectionAdapterViewHolder extends RecyclerView.ViewHolder {
+    public class HedgehogCollectionAdapterViewHolder extends RecyclerView.ViewHolder {
 
-        public HedgieCollectionAdapterViewHolder(View view) {
+        public HedgehogCollectionAdapterViewHolder(View view) {
             super(view);
+            hedgehogContainer = (LinearLayout) view.findViewById(R.id.hedgehog_container);
             hedgehogImageView = (ImageView) view.findViewById(R.id.hedgehog_image);
             heartImage1 = (ImageView) view.findViewById(R.id.heart_1);
             heartImage2 = (ImageView) view.findViewById(R.id.heart_2);
@@ -166,3 +162,4 @@ public class HedgehogCollectionAdapter extends RecyclerView.Adapter<HedgehogColl
         }
     }
 }
+

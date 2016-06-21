@@ -13,8 +13,8 @@ public class HedgehogDetailActivity extends AppCompatActivity {
 
         if (savedInstanceState == null) {
             Bundle arguments = new Bundle();
-            arguments.putParcelable("hedgehogParcelable",
-                    getIntent().getBundleExtra("hedgehog").getParcelable("hedgehogParcelable"));
+            arguments.putParcelable(HedgehogDetailFragment.DETAIL_URI,
+                    getIntent().getData());
 
             HedgehogDetailFragment fragment = new HedgehogDetailFragment();
             fragment.setArguments(arguments);
@@ -28,6 +28,5 @@ public class HedgehogDetailActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
-
     }
 }

@@ -2,10 +2,16 @@ package grimesmea.gmail.com.pricklefit;
 
 
 import android.content.ContentValues;
+import android.database.Cursor;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -13,6 +19,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import grimesmea.gmail.com.pricklefit.data.HedgehogContract.HedgehogsEntry;
 
@@ -20,10 +27,16 @@ import grimesmea.gmail.com.pricklefit.data.HedgehogContract.HedgehogsEntry;
 /**
  * Displays details for the specified hedgehog.
  */
-public class HedgehogDetailFragment extends Fragment {
+public class HedgehogDetailFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+
+    static final String DETAIL_URI = "HEDGEHOG_URI";
+    private static final String LOG_TAG = HedgehogDetailFragment.class.getSimpleName();
+    private static final int HEDGEHOG_LOADER = 200;
+    private Uri mUri;
 
     private Hedgehog hedgehog;
     private ImageView hedgehogImageView;
+    private TextView hedgehogDescriptionView;
     private ImageView heartImage1;
     private ImageView heartImage2;
     private ImageView heartImage3;
@@ -41,14 +54,11 @@ public class HedgehogDetailFragment extends Fragment {
 
         Bundle arguments = getArguments();
         if (arguments != null) {
-            hedgehog = arguments.getParcelable("hedgehogParcelable");
+            mUri = arguments.getParcelable(DETAIL_URI);
         }
 
-        if (hedgehog.getIsUnlocked() && !hedgehog.getIsSelected()) {
-            setHasOptionsMenu(true);
-        }
-
-        getActivity().setTitle(hedgehog.getName());
+        getLoaderManager().initLoader(HEDGEHOG_LOADER, null, this);
+        getActivity().setTitle("");
     }
 
     @Override
@@ -95,12 +105,10 @@ public class HedgehogDetailFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        int hedgehogImageResource;
-        Drawable hedgehogDrawable;
-
         View rootView = inflater.inflate(R.layout.fragment_hedgehog_detail, container, false);
 
         hedgehogImageView = (ImageView) rootView.findViewById(R.id.hedgehog_image);
+        hedgehogDescriptionView = (TextView) rootView.findViewById(R.id.hedgehog_personality);
         heartImage1 = (ImageView) rootView.findViewById(R.id.heart_1);
         heartImage2 = (ImageView) rootView.findViewById(R.id.heart_2);
         heartImage3 = (ImageView) rootView.findViewById(R.id.heart_3);
@@ -110,8 +118,26 @@ public class HedgehogDetailFragment extends Fragment {
                 heartImage1, heartImage2, heartImage3, heartImage4, heartImage5
         };
 
+        return rootView;
+    }
+
+    private void updateHedgehogViews() {
+        int hedgehogImageResource;
+        String hedgehogDescription;
+        Drawable hedgehogDrawable;
+
+        getActivity().setTitle(hedgehog.getName());
+
+        if (hedgehog.getIsUnlocked() && !hedgehog.getIsSelected()) {
+            setHasOptionsMenu(true);
+        } else {
+            setHasOptionsMenu(false);
+        }
+
         if (hedgehog.getIsUnlocked()) {
             hedgehogImageResource = getContext().getResources().getIdentifier(hedgehog.getImageName(), "drawable", getContext().getPackageName());
+            Log.d(LOG_TAG, hedgehog.getDescription());
+            hedgehogDescription = hedgehog.getDescription();
             for (int i = 0; i < 5; i++) {
                 if (i < hedgehog.getHappinessLevel()) {
                     heartImageViews[i].setImageResource(R.drawable.heart_filled);
@@ -121,6 +147,7 @@ public class HedgehogDetailFragment extends Fragment {
             }
         } else {
             hedgehogImageResource = getContext().getResources().getIdentifier(hedgehog.getSilhouetteImageName(), "drawable", getContext().getPackageName());
+            hedgehogDescription = "?????";
             for (int i = 0; i < 5; i++) {
                 heartImageViews[i].setImageResource(R.drawable.heart_filled_grey);
             }
@@ -131,8 +158,36 @@ public class HedgehogDetailFragment extends Fragment {
         } else {
             hedgehogDrawable = getContext().getResources().getDrawable(hedgehogImageResource);
         }
+        Log.d(LOG_TAG, hedgehogDescription);
+        hedgehogDescriptionView.setText(hedgehogDescription);
         hedgehogImageView.setImageDrawable(hedgehogDrawable);
+    }
 
-        return rootView;
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        if (mUri != null) {
+            return new CursorLoader(
+                    getActivity(),
+                    mUri,
+                    null,
+                    null,
+                    null,
+                    null
+            );
+        }
+        return null;
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        if (data != null && data.moveToFirst()) {
+            hedgehog = new Hedgehog(data);
+            updateHedgehogViews();
+        }
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        hedgehog = null;
     }
 }
