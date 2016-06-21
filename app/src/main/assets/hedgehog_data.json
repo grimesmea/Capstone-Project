@@ -4,29 +4,29 @@
       "name": "Gigi",
       "image_name": "hedgie_1",
       "silhouette_image_name": "hedgehog_1_silhouette",
-      "description": "null",
+      "description": "Gigi is fun-loving and loves to cuddle.",
       "happiness_level": 5,
       "fitness_level": 0,
       "unlock_status": true,
       "selected_status": true
     },
     {
-      "name": "Tim",
+      "name": "Rylai",
       "image_name": "hedgie_2",
       "silhouette_image_name": "hedgehog_2_silhouette",
-      "description": "null",
+      "description": "Rylai is rambunctious always looking to play.",
       "happiness_level": 1,
-      "fitness_level": 1,
-      "unlock_status": false,
+      "fitness_level": 2,
+      "unlock_status": true,
       "selected_status": false
     },
     {
-      "name": "Ori",
+      "name": "Naru",
       "image_name": "hedgie_3",
       "silhouette_image_name": "hedgehog_3_silhouette",
-      "description": "null",
+      "description": "Naru is an explorer and adventurer at heart.",
       "happiness_level": 1,
-      "fitness_level": 2,
+      "fitness_level": 1,
       "unlock_status": false,
       "selected_status": false
     }
