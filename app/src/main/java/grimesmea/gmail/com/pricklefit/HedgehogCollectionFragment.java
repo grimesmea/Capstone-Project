@@ -26,6 +26,8 @@ public class HedgehogCollectionFragment extends Fragment implements LoaderManage
     private static final int HEDGEHOGS_LOADER = 200;
     private final String LOG_TAG = HedgehogCollectionFragment.class.getSimpleName();
     HedgehogCollectionAdapter mHedgehogCollectionAdapter;
+    String sortBySelectedStatusParameter = HedgehogContract.HedgehogsEntry.TABLE_NAME + "." +
+            HedgehogContract.HedgehogsEntry.COLUMN_SELECTED_STATUS + " DESC";
 
     public HedgehogCollectionFragment() {
         // Required empty public constructor
@@ -72,7 +74,7 @@ public class HedgehogCollectionFragment extends Fragment implements LoaderManage
                 null,
                 null,
                 null,
-                null
+                sortBySelectedStatusParameter
         );
 
         return cursorLoader;

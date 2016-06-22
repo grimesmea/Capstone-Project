@@ -34,6 +34,8 @@
 
     <!-- Hedgehog Detail Fragment -->
     <string name="action_set_active">Set As Home Screen</string>
+    <string name="locked_hedgehog_name_placeholder">\?????</string>
+    <string name="locked_hedgehog_description_placeholder">Unlock this hedgehog to find out more about them.</string>
 
     <!-- Settings Activity -->
     <string name="title_activity_settings">Settings</string>

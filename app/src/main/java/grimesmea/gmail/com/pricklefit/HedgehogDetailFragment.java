@@ -11,7 +11,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -59,6 +58,7 @@ public class HedgehogDetailFragment extends Fragment implements LoaderManager.Lo
 
         getLoaderManager().initLoader(HEDGEHOG_LOADER, null, this);
         getActivity().setTitle("");
+        setHasOptionsMenu(true);
     }
 
     @Override
@@ -89,16 +89,16 @@ public class HedgehogDetailFragment extends Fragment implements LoaderManager.Lo
 
         getActivity().getContentResolver().update(
                 HedgehogsEntry.CONTENT_URI,
-                selectedValue,
+                unselectedValue,
                 HedgehogsEntry.COLUMN_SELECTED_STATUS + "= ?",
                 new String[]{Integer.toString(1)}
         );
 
         getActivity().getContentResolver().update(
-                HedgehogsEntry.CONTENT_URI,
+                HedgehogsEntry.buildHedgehogUri(hedgehog.getId()),
                 selectedValue,
-                HedgehogsEntry.COLUMN_NAME + "= ?",
-                new String[]{hedgehog.getName()}
+                null,
+                null
         );
     }
 
@@ -126,17 +126,8 @@ public class HedgehogDetailFragment extends Fragment implements LoaderManager.Lo
         String hedgehogDescription;
         Drawable hedgehogDrawable;
 
-        getActivity().setTitle(hedgehog.getName());
-
-        if (hedgehog.getIsUnlocked() && !hedgehog.getIsSelected()) {
-            setHasOptionsMenu(true);
-        } else {
-            setHasOptionsMenu(false);
-        }
-
         if (hedgehog.getIsUnlocked()) {
             hedgehogImageResource = getContext().getResources().getIdentifier(hedgehog.getImageName(), "drawable", getContext().getPackageName());
-            Log.d(LOG_TAG, hedgehog.getDescription());
             hedgehogDescription = hedgehog.getDescription();
             for (int i = 0; i < 5; i++) {
                 if (i < hedgehog.getHappinessLevel()) {
@@ -145,12 +136,14 @@ public class HedgehogDetailFragment extends Fragment implements LoaderManager.Lo
                     heartImageViews[i].setImageResource(R.drawable.heart_outline);
                 }
             }
+            getActivity().setTitle(hedgehog.getName());
         } else {
             hedgehogImageResource = getContext().getResources().getIdentifier(hedgehog.getSilhouetteImageName(), "drawable", getContext().getPackageName());
-            hedgehogDescription = "?????";
+            hedgehogDescription = getString(R.string.locked_hedgehog_description_placeholder);
             for (int i = 0; i < 5; i++) {
                 heartImageViews[i].setImageResource(R.drawable.heart_filled_grey);
             }
+            getActivity().setTitle(getString(R.string.locked_hedgehog_name_placeholder));
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -158,7 +151,7 @@ public class HedgehogDetailFragment extends Fragment implements LoaderManager.Lo
         } else {
             hedgehogDrawable = getContext().getResources().getDrawable(hedgehogImageResource);
         }
-        Log.d(LOG_TAG, hedgehogDescription);
+
         hedgehogDescriptionView.setText(hedgehogDescription);
         hedgehogImageView.setImageDrawable(hedgehogDrawable);
     }
