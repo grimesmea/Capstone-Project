@@ -4,7 +4,6 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.util.Log;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -25,7 +24,6 @@ public class Hedgehog implements Parcelable {
         }
     };
 
-    final static String ID = "id";
     final static String NAME = "name";
     final static String IMAGE_NAME = "image_name";
     final static String SILHOUETTE_IMAGE_NAME = "silhouette_image_name";
@@ -163,7 +161,6 @@ public class Hedgehog implements Parcelable {
     }
 
     public String getDescription() {
-        Log.d("Hedgehog Description", description);
         return description;
     }
 

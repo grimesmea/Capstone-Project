@@ -29,7 +29,7 @@ public class FetchHedgehogsDataTask extends AsyncTask<Void, Void, Hedgehog[]> {
 
     @Override
     protected Hedgehog[] doInBackground(Void... voids) {
-        String hedgehogsJsonStr = null;
+        String hedgehogsJsonStr;
 
         try {
             InputStream is = context.getAssets().open("hedgehog_data.json");
