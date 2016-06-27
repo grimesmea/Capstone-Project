@@ -31,6 +31,7 @@ public class HedgehogDetailFragment extends Fragment implements LoaderManager.Lo
     static final String DETAIL_URI = "HEDGEHOG_URI";
     private static final String LOG_TAG = HedgehogDetailFragment.class.getSimpleName();
     private static final int HEDGEHOG_LOADER = 200;
+
     private Uri mUri;
 
     private Hedgehog hedgehog;
@@ -108,7 +109,7 @@ public class HedgehogDetailFragment extends Fragment implements LoaderManager.Lo
         View rootView = inflater.inflate(R.layout.fragment_hedgehog_detail, container, false);
 
         hedgehogImageView = (ImageView) rootView.findViewById(R.id.hedgehog_image);
-        hedgehogDescriptionView = (TextView) rootView.findViewById(R.id.hedgehog_personality);
+        hedgehogDescriptionView = (TextView) rootView.findViewById(R.id.hedgehog_description);
         heartImage1 = (ImageView) rootView.findViewById(R.id.heart_1);
         heartImage2 = (ImageView) rootView.findViewById(R.id.heart_2);
         heartImage3 = (ImageView) rootView.findViewById(R.id.heart_3);

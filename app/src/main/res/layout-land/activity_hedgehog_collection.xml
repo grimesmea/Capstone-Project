@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white"
+    android:background="@color/color_light_grey"
     android:fitsSystemWindows="true"
     tools:context=".HedgehogCollectionActivity">
 
@@ -56,7 +56,6 @@
             android:layout_width="360dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:elevation="@dimen/appbar_elevation"
-            android:fitsSystemWindows="true" />
+            android:elevation="@dimen/appbar_elevation" />
     </android.support.v4.widget.NestedScrollView>
 </android.support.design.widget.CoordinatorLayout>

@@ -8,8 +8,8 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -54,10 +54,13 @@ public class HedgehogCollectionFragment extends Fragment implements LoaderManage
                 emptyView);
         mRecyclerView.setAdapter(mHedgehogCollectionAdapter);
 
-        int columnCount = getResources().getInteger(R.integer.list_column_count);
-        StaggeredGridLayoutManager sglm =
-                new StaggeredGridLayoutManager(columnCount, StaggeredGridLayoutManager.VERTICAL);
-        mRecyclerView.setLayoutManager(sglm);
+
+        SimpleDividerItemDecoration dividerItemDecoration = new SimpleDividerItemDecoration(getContext());
+        mRecyclerView.addItemDecoration(dividerItemDecoration);
+
+        LinearLayoutManager linearLayoutManager =
+                new LinearLayoutManager(getContext());
+        mRecyclerView.setLayoutManager(linearLayoutManager);
 
         getLoaderManager().initLoader(HEDGEHOGS_LOADER, null, this);
 
@@ -99,6 +102,6 @@ public class HedgehogCollectionFragment extends Fragment implements LoaderManage
         /**
          * DetailFragmentCallback for when an item has been selected.
          */
-        public void onItemSelected(Uri hedgehogUri);
+        void onItemSelected(Uri hedgehogUri);
     }
 }

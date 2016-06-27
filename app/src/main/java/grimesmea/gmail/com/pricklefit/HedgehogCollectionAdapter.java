@@ -5,7 +5,6 @@ import android.database.Cursor;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,8 +17,8 @@ import android.widget.LinearLayout;
  */
 public class HedgehogCollectionAdapter extends RecyclerView.Adapter<HedgehogCollectionAdapter.HedgehogCollectionAdapterViewHolder> {
 
-    private static final int VIEW_TYPE_ACTIVE_HEDGEHOG = 0;
-    private static final int VIEW_TYPE_INACTIVE_HEDGEHOG = 1;
+    private static final int VIEW_TYPE_SELECTED_HEDGEHOG = 0;
+    private static final int VIEW_TYPE_UNSELECTED_HEDGEHOG = 1;
     private final String LOG_TAG = HedgehogCollectionAdapter.class.getSimpleName();
     final private Context mContext;
     final private View mEmptyView;
@@ -45,24 +44,13 @@ public class HedgehogCollectionAdapter extends RecyclerView.Adapter<HedgehogColl
     @Override
     public HedgehogCollectionAdapterViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
         if (viewGroup instanceof RecyclerView) {
-            int layoutId = -1;
-            switch (viewType) {
-                case VIEW_TYPE_ACTIVE_HEDGEHOG: {
-                    layoutId = R.layout.list_item_hedgehog_active;
-                    break;
-                }
-                case VIEW_TYPE_INACTIVE_HEDGEHOG: {
-                    layoutId = R.layout.list_item_hedgehog_inactive;
-                    break;
-                }
-            }
+            int layoutId = R.layout.list_item_hedgehog;
 
             View view = LayoutInflater.from(viewGroup.getContext()).inflate(layoutId, viewGroup, false);
             HedgehogCollectionAdapterViewHolder hedgehogCollectionAdapterViewHolder = new HedgehogCollectionAdapterViewHolder(view);
 
-            if (viewType == VIEW_TYPE_ACTIVE_HEDGEHOG) {
-                StaggeredGridLayoutManager.LayoutParams layoutParams = (StaggeredGridLayoutManager.LayoutParams) hedgehogCollectionAdapterViewHolder.itemView.getLayoutParams();
-                layoutParams.setFullSpan(true);
+            if (viewType == VIEW_TYPE_SELECTED_HEDGEHOG) {
+                //view.findViewById(R.id.selected_hedgehog_tick).setVisibility(View.VISIBLE);
             }
 
             return hedgehogCollectionAdapterViewHolder;
@@ -119,7 +107,7 @@ public class HedgehogCollectionAdapter extends RecyclerView.Adapter<HedgehogColl
 
     @Override
     public int getItemViewType(int position) {
-        return (position == 0) ? VIEW_TYPE_ACTIVE_HEDGEHOG : VIEW_TYPE_INACTIVE_HEDGEHOG;
+        return (position == 0) ? VIEW_TYPE_SELECTED_HEDGEHOG : VIEW_TYPE_UNSELECTED_HEDGEHOG;
     }
 
     @Override
