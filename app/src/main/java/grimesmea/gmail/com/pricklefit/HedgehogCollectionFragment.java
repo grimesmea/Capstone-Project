@@ -26,8 +26,7 @@ public class HedgehogCollectionFragment extends Fragment implements LoaderManage
     private static final int HEDGEHOGS_LOADER = 200;
     private final String LOG_TAG = HedgehogCollectionFragment.class.getSimpleName();
     HedgehogCollectionAdapter mHedgehogCollectionAdapter;
-    String sortBySelectedStatusParameter = HedgehogContract.HedgehogsEntry.TABLE_NAME + "." +
-            HedgehogContract.HedgehogsEntry.COLUMN_SELECTED_STATUS + " DESC";
+    RecyclerView mRecyclerView;
 
     public HedgehogCollectionFragment() {
         // Required empty public constructor
@@ -39,7 +38,7 @@ public class HedgehogCollectionFragment extends Fragment implements LoaderManage
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_hedgehog_collection, container, false);
 
-        RecyclerView mRecyclerView = (RecyclerView) rootView.findViewById(R.id.recyclerview_hedgehog_collection);
+        mRecyclerView = (RecyclerView) rootView.findViewById(R.id.recyclerview_hedgehog_collection);
         View emptyView = rootView.findViewById(R.id.recyclerview_hedgehog_collection_empty);
 
         mHedgehogCollectionAdapter = new HedgehogCollectionAdapter(
@@ -77,7 +76,7 @@ public class HedgehogCollectionFragment extends Fragment implements LoaderManage
                 null,
                 null,
                 null,
-                sortBySelectedStatusParameter
+                null
         );
 
         return cursorLoader;
@@ -85,6 +84,8 @@ public class HedgehogCollectionFragment extends Fragment implements LoaderManage
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        mHedgehogCollectionAdapter.notifyDataSetChanged();
+        mRecyclerView.setAdapter(mHedgehogCollectionAdapter);
         mHedgehogCollectionAdapter.swapCursor(data);
     }
 

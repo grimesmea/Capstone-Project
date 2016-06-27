@@ -27,6 +27,7 @@ public class HedgehogCollectionAdapter extends RecyclerView.Adapter<HedgehogColl
     private Cursor mCursor;
     private LinearLayout hedgehogContainer;
     private ImageView hedgehogImageView;
+    private ImageView selectedHedgehogTickImageView;
     private ImageView heartImage1;
     private ImageView heartImage2;
     private ImageView heartImage3;
@@ -49,10 +50,6 @@ public class HedgehogCollectionAdapter extends RecyclerView.Adapter<HedgehogColl
             View view = LayoutInflater.from(viewGroup.getContext()).inflate(layoutId, viewGroup, false);
             HedgehogCollectionAdapterViewHolder hedgehogCollectionAdapterViewHolder = new HedgehogCollectionAdapterViewHolder(view);
 
-            if (viewType == VIEW_TYPE_SELECTED_HEDGEHOG) {
-                //view.findViewById(R.id.selected_hedgehog_tick).setVisibility(View.VISIBLE);
-            }
-
             return hedgehogCollectionAdapterViewHolder;
         } else {
             throw new RuntimeException("Not bound to RecyclerView");
@@ -72,6 +69,10 @@ public class HedgehogCollectionAdapter extends RecyclerView.Adapter<HedgehogColl
     private void updateHedgehogViews(final Hedgehog hedgehog) {
         int hedgehogImageResource;
         Drawable hedgehogDrawable;
+
+        if (hedgehog.getIsSelected()) {
+            selectedHedgehogTickImageView.setVisibility(View.VISIBLE);
+        }
 
         if (hedgehog.getIsUnlocked()) {
             hedgehogImageResource = mContext.getResources().getIdentifier(hedgehog.getImageName(), "drawable", mContext.getPackageName());
@@ -104,12 +105,6 @@ public class HedgehogCollectionAdapter extends RecyclerView.Adapter<HedgehogColl
         });
     }
 
-
-    @Override
-    public int getItemViewType(int position) {
-        return (position == 0) ? VIEW_TYPE_SELECTED_HEDGEHOG : VIEW_TYPE_UNSELECTED_HEDGEHOG;
-    }
-
     @Override
     public int getItemCount() {
         if (mCursor != null) {
@@ -137,6 +132,7 @@ public class HedgehogCollectionAdapter extends RecyclerView.Adapter<HedgehogColl
         public HedgehogCollectionAdapterViewHolder(View view) {
             super(view);
             hedgehogContainer = (LinearLayout) view.findViewById(R.id.hedgehog_container);
+            selectedHedgehogTickImageView = (ImageView) view.findViewById(R.id.selected_hedgehog_tick);
             hedgehogImageView = (ImageView) view.findViewById(R.id.hedgehog_image);
             heartImage1 = (ImageView) view.findViewById(R.id.heart_1);
             heartImage2 = (ImageView) view.findViewById(R.id.heart_2);

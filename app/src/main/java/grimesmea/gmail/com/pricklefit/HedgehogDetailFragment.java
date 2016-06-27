@@ -7,14 +7,12 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -44,6 +42,8 @@ public class HedgehogDetailFragment extends Fragment implements LoaderManager.Lo
     private ImageView heartImage5;
     private ImageView[] heartImageViews;
 
+    private FloatingActionButton selectionFab;
+
     public HedgehogDetailFragment() {
         // Required empty public constructor
     }
@@ -58,27 +58,33 @@ public class HedgehogDetailFragment extends Fragment implements LoaderManager.Lo
         }
 
         getLoaderManager().initLoader(HEDGEHOG_LOADER, null, this);
-        getActivity().setTitle("");
-        setHasOptionsMenu(true);
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.hedgehog_detail_fragment, menu);
-    }
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        View rootView = inflater.inflate(R.layout.fragment_hedgehog_detail, container, false);
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_set_active:
-                if (!item.isChecked() && hedgehog.getIsUnlocked()) {
-                    item.setChecked(true);
-                    setSelectedHedgehogInContentProvider(hedgehog);
-                }
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
+        selectionFab = (FloatingActionButton) rootView.findViewById(R.id.select_hedgehog_fab);
+        selectionFab.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                setSelectedHedgehogInContentProvider(hedgehog);
+                selectionFab.setVisibility(View.GONE);
+            }
+        });
+
+        hedgehogImageView = (ImageView) rootView.findViewById(R.id.hedgehog_image);
+        hedgehogDescriptionView = (TextView) rootView.findViewById(R.id.hedgehog_description);
+        heartImage1 = (ImageView) rootView.findViewById(R.id.heart_1);
+        heartImage2 = (ImageView) rootView.findViewById(R.id.heart_2);
+        heartImage3 = (ImageView) rootView.findViewById(R.id.heart_3);
+        heartImage4 = (ImageView) rootView.findViewById(R.id.heart_4);
+        heartImage5 = (ImageView) rootView.findViewById(R.id.heart_5);
+        heartImageViews = new ImageView[]{
+                heartImage1, heartImage2, heartImage3, heartImage4, heartImage5
+        };
+
+        return rootView;
     }
 
     public void setSelectedHedgehogInContentProvider(Hedgehog hedgehog) {
@@ -103,25 +109,6 @@ public class HedgehogDetailFragment extends Fragment implements LoaderManager.Lo
         );
     }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_hedgehog_detail, container, false);
-
-        hedgehogImageView = (ImageView) rootView.findViewById(R.id.hedgehog_image);
-        hedgehogDescriptionView = (TextView) rootView.findViewById(R.id.hedgehog_description);
-        heartImage1 = (ImageView) rootView.findViewById(R.id.heart_1);
-        heartImage2 = (ImageView) rootView.findViewById(R.id.heart_2);
-        heartImage3 = (ImageView) rootView.findViewById(R.id.heart_3);
-        heartImage4 = (ImageView) rootView.findViewById(R.id.heart_4);
-        heartImage5 = (ImageView) rootView.findViewById(R.id.heart_5);
-        heartImageViews = new ImageView[]{
-                heartImage1, heartImage2, heartImage3, heartImage4, heartImage5
-        };
-
-        return rootView;
-    }
-
     private void updateHedgehogViews() {
         int hedgehogImageResource;
         String hedgehogDescription;
@@ -137,14 +124,16 @@ public class HedgehogDetailFragment extends Fragment implements LoaderManager.Lo
                     heartImageViews[i].setImageResource(R.drawable.heart_outline);
                 }
             }
-            getActivity().setTitle(hedgehog.getName());
+
+            if (!hedgehog.getIsSelected()) {
+                selectionFab.setVisibility(View.VISIBLE);
+            }
         } else {
             hedgehogImageResource = getContext().getResources().getIdentifier(hedgehog.getSilhouetteImageName(), "drawable", getContext().getPackageName());
             hedgehogDescription = getString(R.string.locked_hedgehog_description_placeholder);
             for (int i = 0; i < 5; i++) {
                 heartImageViews[i].setImageResource(R.drawable.heart_filled_grey);
             }
-            getActivity().setTitle(getString(R.string.locked_hedgehog_name_placeholder));
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {

@@ -20,6 +20,9 @@
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true"
+            android:layout_marginEnd="@dimen/selected_hedgehog_tick_padding"
+            android:layout_marginRight="@dimen/selected_hedgehog_tick_padding"
+            android:layout_marginTop="@dimen/selected_hedgehog_tick_padding"
             android:scaleType="center"
             android:src="@drawable/ic_action_tick"
             android:visibility="gone" />

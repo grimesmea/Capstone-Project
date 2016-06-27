@@ -16,4 +16,7 @@
 
     <!-- Default card view elevation-->
     <dimen name="detail_card_elevation">4dp</dimen>
+
+    <dimen name="default_padding">16dp</dimen>
+    <dimen name="selected_hedgehog_tick_padding">4dp</dimen>
 </resources>
