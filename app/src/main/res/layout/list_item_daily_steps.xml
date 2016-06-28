@@ -2,6 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:minHeight="?android:attr/listPreferredItemHeight"
     android:paddingBottom="8dp"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
@@ -24,6 +25,6 @@
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
         android:text="7,945"
-        android:textColor="@color/color_dark_grey_text"
+        android:textColor="@color/dark_grey_text"
         android:textSize="20sp" />
 </RelativeLayout>

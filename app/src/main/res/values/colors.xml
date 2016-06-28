@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="color_primary">#F44336</color>
-    <color name="color_primary_dark">#D50000</color>
-    <color name="color_accent">#1DE9B6</color>
+    <color name="primary">#F44336</color>
+    <color name="primary_dark">#D50000</color>
+    <color name="accent">#1DE9B6</color>
 
-    <color name="color_default_text">#262626</color>
-    <color name="color_dark_grey_text">#5C6266</color>
+    <color name="default_text">#262626</color>
+    <color name="dark_grey_text">#5C6266</color>
 
-    <color name="color_light_grey">#EEEEEE</color>
-    <color name="color_dark_grey">#DDDDDD</color>
+    <color name="light_grey">#EEEEEE</color>
+    <color name="dark_grey">#DDDDDD</color>
 
     <!-- Activated state selector color -->
     <color name="activated">#E0E0E0</color>
