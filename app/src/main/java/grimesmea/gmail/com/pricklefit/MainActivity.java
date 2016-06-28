@@ -46,12 +46,13 @@ public class MainActivity extends AppCompatActivity
     private static final int REQUEST_OAUTH = 1;
     private static final String SENSORS_AUTH_PENDING = "sensors_auth_state_pending";
     private static final String RECORDING_AUTH_PENDING = "recording_auth_state_pending";
+    private static final String TODAY_STEP_TOTAL = "todayStepTotal";
     private final String LOG_TAG = MainActivity.class.getSimpleName();
     private boolean sensorsAuthInProgress = false;
     private boolean recordingAuthInProgress = false;
     private GoogleApiClient mApiClient;
-    private int todaysStepCount;
-    private TextView todaysStepsTextView;
+    private int todayStepCount = 0;
+    private TextView todayStepsTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,12 +72,17 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        todaysStepsTextView = (TextView) findViewById(R.id.daily_step_count);
-        todaysStepsTextView.setText("0");
+        todayStepsTextView = (TextView) findViewById(R.id.daily_step_count);
+        todayStepsTextView.setText("0");
 
         if (savedInstanceState != null) {
             sensorsAuthInProgress = savedInstanceState.getBoolean(SENSORS_AUTH_PENDING);
             recordingAuthInProgress = savedInstanceState.getBoolean(RECORDING_AUTH_PENDING);
+
+            if (savedInstanceState.containsKey(TODAY_STEP_TOTAL)) {
+                todayStepCount = savedInstanceState.getInt(TODAY_STEP_TOTAL);
+                Log.d(LOG_TAG, "set step count using savedInstanceState");
+            }
         }
 
         buildSensorsApiClient();
@@ -153,11 +159,11 @@ public class MainActivity extends AppCompatActivity
                 DailyTotalResult dailyTotalResult = (DailyTotalResult) result;
                 if (result.getStatus().isSuccess()) {
                     DataSet totalSet = dailyTotalResult.getTotal();
-                    todaysStepCount = totalSet.isEmpty()
+                    todayStepCount = totalSet.isEmpty()
                             ? 0
                             : totalSet.getDataPoints().get(0).getValue(Field.FIELD_STEPS).asInt();
-                    Log.d(LOG_TAG, "DAILY TOTAL " + Integer.toString(todaysStepCount));
-                    updateStepCountTextView(todaysStepCount);
+                    Log.d(LOG_TAG, "Daily step total retrieved from history API. Today's steps = " + Integer.toString(todayStepCount));
+                    updateStepCountTextView(todayStepCount);
                 }
             }
         });
@@ -211,8 +217,8 @@ public class MainActivity extends AppCompatActivity
                 public void run() {
                     Log.d(LOG_TAG, "DELTA STEPS " + Integer.toString(value.asInt()));
                     if (value.asInt() > 0) {
-                        todaysStepCount += value.asInt();
-                        updateStepCountTextView(todaysStepCount);
+                        todayStepCount += value.asInt();
+                        updateStepCountTextView(todayStepCount);
                     }
                 }
             });
@@ -220,7 +226,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void updateStepCountTextView(int currentStepCount) {
-        todaysStepsTextView.setText(String.format("%,d", currentStepCount));
+        todayStepsTextView.setText(String.format("%,d", currentStepCount));
     }
 
     @Override
@@ -260,5 +266,6 @@ public class MainActivity extends AppCompatActivity
         super.onSaveInstanceState(outState);
         outState.putBoolean(SENSORS_AUTH_PENDING, sensorsAuthInProgress);
         outState.putBoolean(RECORDING_AUTH_PENDING, recordingAuthInProgress);
+        outState.putInt(TODAY_STEP_TOTAL, todayStepCount);
     }
 }
