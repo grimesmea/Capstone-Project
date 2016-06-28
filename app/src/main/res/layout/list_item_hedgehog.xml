@@ -3,6 +3,7 @@
     android:id="@+id/hedgehog_container"
     android:layout_width="match_parent"
     android:layout_height="244dp"
+    android:background="@drawable/touch_selector"
     android:orientation="vertical">
 
     <RelativeLayout

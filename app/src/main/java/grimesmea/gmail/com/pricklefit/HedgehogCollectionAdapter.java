@@ -4,6 +4,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,29 +18,23 @@ import android.widget.LinearLayout;
  */
 public class HedgehogCollectionAdapter extends RecyclerView.Adapter<HedgehogCollectionAdapter.HedgehogCollectionAdapterViewHolder> {
 
-    private static final int VIEW_TYPE_SELECTED_HEDGEHOG = 0;
-    private static final int VIEW_TYPE_UNSELECTED_HEDGEHOG = 1;
     private final String LOG_TAG = HedgehogCollectionAdapter.class.getSimpleName();
+
     final private Context mContext;
     final private View mEmptyView;
     final private HedgehogCollectionAdapterOnClickHandler mClickHandler;
+    final private ItemChoiceManager mItemChoiceManager;
 
     private Cursor mCursor;
-    private LinearLayout hedgehogContainer;
-    private ImageView hedgehogImageView;
-    private ImageView selectedHedgehogTickImageView;
-    private ImageView heartImage1;
-    private ImageView heartImage2;
-    private ImageView heartImage3;
-    private ImageView heartImage4;
-    private ImageView heartImage5;
-    private ImageView[] heartImageViews;
 
-
-    public HedgehogCollectionAdapter(Context context, HedgehogCollectionAdapterOnClickHandler onClickHandler, View emptyView) {
+    public HedgehogCollectionAdapter(Context context,
+                                     HedgehogCollectionAdapterOnClickHandler onClickHandler,
+                                     View emptyView,
+                                     boolean isSingleChoiceMode) {
         mContext = context;
         mClickHandler = onClickHandler;
         mEmptyView = emptyView;
+        mItemChoiceManager = new ItemChoiceManager(this, isSingleChoiceMode);
     }
 
     @Override
@@ -48,7 +43,8 @@ public class HedgehogCollectionAdapter extends RecyclerView.Adapter<HedgehogColl
             int layoutId = R.layout.list_item_hedgehog;
 
             View view = LayoutInflater.from(viewGroup.getContext()).inflate(layoutId, viewGroup, false);
-            HedgehogCollectionAdapterViewHolder hedgehogCollectionAdapterViewHolder = new HedgehogCollectionAdapterViewHolder(view);
+            HedgehogCollectionAdapterViewHolder hedgehogCollectionAdapterViewHolder =
+                    new HedgehogCollectionAdapterViewHolder(view);
 
             return hedgehogCollectionAdapterViewHolder;
         } else {
@@ -61,32 +57,35 @@ public class HedgehogCollectionAdapter extends RecyclerView.Adapter<HedgehogColl
         mEmptyView.setVisibility(getItemCount() == 0 ? View.VISIBLE : View.GONE);
 
         mCursor.moveToPosition(position);
+        updateHedgehogViews(mCursor, viewHolder);
 
-        Hedgehog hedgehog = new Hedgehog(mCursor);
-        updateHedgehogViews(hedgehog);
+        mItemChoiceManager.onBindViewHolder(viewHolder, position);
     }
 
-    private void updateHedgehogViews(final Hedgehog hedgehog) {
+    private void updateHedgehogViews(Cursor cursor , final HedgehogCollectionAdapterViewHolder viewHolder) {
+        Hedgehog hedgehog = new Hedgehog(cursor);
         int hedgehogImageResource;
         Drawable hedgehogDrawable;
 
         if (hedgehog.getIsSelected()) {
-            selectedHedgehogTickImageView.setVisibility(View.VISIBLE);
+            viewHolder.selectedHedgehogTickImageView.setVisibility(View.VISIBLE);
+        } else {
+            viewHolder.selectedHedgehogTickImageView.setVisibility(View.GONE);
         }
 
         if (hedgehog.getIsUnlocked()) {
             hedgehogImageResource = mContext.getResources().getIdentifier(hedgehog.getImageName(), "drawable", mContext.getPackageName());
             for (int i = 0; i < 5; i++) {
                 if (i < hedgehog.getHappinessLevel()) {
-                    heartImageViews[i].setImageResource(R.drawable.heart_filled);
+                    viewHolder.heartImageViews[i].setImageResource(R.drawable.heart_filled);
                 } else {
-                    heartImageViews[i].setImageResource(R.drawable.heart_outline);
+                    viewHolder.heartImageViews[i].setImageResource(R.drawable.heart_outline);
                 }
             }
         } else {
             hedgehogImageResource = mContext.getResources().getIdentifier(hedgehog.getSilhouetteImageName(), "drawable", mContext.getPackageName());
             for (int i = 0; i < 5; i++) {
-                heartImageViews[i].setImageResource(R.drawable.heart_filled_grey);
+                viewHolder.heartImageViews[i].setImageResource(R.drawable.heart_filled_grey);
             }
         }
 
@@ -96,13 +95,7 @@ public class HedgehogCollectionAdapter extends RecyclerView.Adapter<HedgehogColl
             hedgehogDrawable = mContext.getResources().getDrawable(hedgehogImageResource);
         }
 
-        hedgehogImageView.setImageDrawable(hedgehogDrawable);
-        hedgehogContainer.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mClickHandler.onClick(hedgehog.getId());
-            }
-        });
+        viewHolder.hedgehogImageView.setImageDrawable(hedgehogDrawable);
     }
 
     @Override
@@ -120,14 +113,47 @@ public class HedgehogCollectionAdapter extends RecyclerView.Adapter<HedgehogColl
         mEmptyView.setVisibility(getItemCount() == 0 ? View.VISIBLE : View.GONE);
     }
 
+    public Cursor getCursor() {
+        return mCursor;
+    }
+
+    public void selectView(RecyclerView.ViewHolder viewHolder) {
+        if (viewHolder instanceof HedgehogCollectionAdapterViewHolder) {
+            HedgehogCollectionAdapterViewHolder hedgehogCollectionAdapterViewHolder = (HedgehogCollectionAdapterViewHolder) viewHolder;
+            hedgehogCollectionAdapterViewHolder.onClick(hedgehogCollectionAdapterViewHolder.itemView);
+        }
+    }
+
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        mItemChoiceManager.onRestoreInstanceState(savedInstanceState);
+    }
+
+    public void onSaveInstanceState(Bundle outState) {
+        mItemChoiceManager.onSaveInstanceState(outState);
+    }
+
+    public int getSelectedItemPosition() {
+        return mItemChoiceManager.getSelectedItemPosition();
+    }
+
     public interface HedgehogCollectionAdapterOnClickHandler {
-        void onClick(int hedgehogId);
+        void onClick(int hedgehogId, HedgehogCollectionAdapterViewHolder viewHolder);
     }
 
     /**
      * Cache of the children views for a hedgehog list item.
      */
-    public class HedgehogCollectionAdapterViewHolder extends RecyclerView.ViewHolder {
+    public class HedgehogCollectionAdapterViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
+
+        public LinearLayout hedgehogContainer;
+        public ImageView hedgehogImageView;
+        public ImageView selectedHedgehogTickImageView;
+        public ImageView heartImage1;
+        public ImageView heartImage2;
+        public ImageView heartImage3;
+        public ImageView heartImage4;
+        public ImageView heartImage5;
+        public ImageView[] heartImageViews;
 
         public HedgehogCollectionAdapterViewHolder(View view) {
             super(view);
@@ -143,6 +169,16 @@ public class HedgehogCollectionAdapter extends RecyclerView.Adapter<HedgehogColl
             heartImageViews = new ImageView[]{
                     heartImage1, heartImage2, heartImage3, heartImage4, heartImage5
             };
+
+            view.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View v) {
+            int adapterPosition = getAdapterPosition();
+            mCursor.moveToPosition(adapterPosition);
+            mClickHandler.onClick(mCursor.getInt(TodaysStepsFragment.COL_HEDGEHOG_ID), this);
+            mItemChoiceManager.onClick(this);
         }
     }
 }

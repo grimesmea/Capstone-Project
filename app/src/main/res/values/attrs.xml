@@ -4,4 +4,9 @@
         <attr name="minLength" format="integer" />
         <attr name="maxLength" format="integer" />
     </declare-styleable>
+
+    <declare-styleable name="HedgehogCollectionFragment">
+        <attr name="singleChoiceMode" format="boolean" />
+        <attr name="autoSelectView" format="boolean" />
+    </declare-styleable>
 </resources>
