@@ -62,7 +62,7 @@ public class HedgehogCollectionAdapter extends RecyclerView.Adapter<HedgehogColl
         mItemChoiceManager.onBindViewHolder(viewHolder, position);
     }
 
-    private void updateHedgehogViews(Cursor cursor , final HedgehogCollectionAdapterViewHolder viewHolder) {
+    private void updateHedgehogViews(Cursor cursor, final HedgehogCollectionAdapterViewHolder viewHolder) {
         Hedgehog hedgehog = new Hedgehog(cursor);
         int hedgehogImageResource;
         Drawable hedgehogDrawable;
@@ -143,7 +143,7 @@ public class HedgehogCollectionAdapter extends RecyclerView.Adapter<HedgehogColl
     /**
      * Cache of the children views for a hedgehog list item.
      */
-    public class HedgehogCollectionAdapterViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
+    public class HedgehogCollectionAdapterViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         public LinearLayout hedgehogContainer;
         public ImageView hedgehogImageView;

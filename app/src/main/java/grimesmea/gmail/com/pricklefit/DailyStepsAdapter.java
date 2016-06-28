@@ -30,6 +30,7 @@ public class DailyStepsAdapter extends RecyclerView.Adapter<DailyStepsAdapter.Da
     public DailyStepsAdapterViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
         if (viewGroup instanceof RecyclerView) {
             int layoutId = -1;
+
             switch (viewType) {
                 case VIEW_TYPE_AVERAGE_STEPS: {
                     if (!mIsLandscape) {

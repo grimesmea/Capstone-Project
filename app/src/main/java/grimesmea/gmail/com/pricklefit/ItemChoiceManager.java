@@ -14,14 +14,13 @@ import android.widget.Checkable;
  */
 public class ItemChoiceManager {
 
-    private final String LOG_TAG = ItemChoiceManager.class.getSimpleName();
-
     /**
      * How many positions in either direction we will search to try to
      * find a checked item with a stable ID that moved position across
      * a data set change. If the item isn't found it will be unselected.
      */
     private static final int CHECK_POSITION_SEARCH_DISTANCE = 20;
+    private final String LOG_TAG = ItemChoiceManager.class.getSimpleName();
     private final String SELECTED_ITEMS_KEY = "SIK";
     /**
      * Running state of which positions are currently checked

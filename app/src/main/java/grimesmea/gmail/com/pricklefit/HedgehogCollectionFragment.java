@@ -26,16 +26,14 @@ import grimesmea.gmail.com.pricklefit.data.HedgehogContract;
  */
 public class HedgehogCollectionFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
-    private final String LOG_TAG = HedgehogCollectionFragment.class.getSimpleName();
-
     private static final int HEDGEHOGS_LOADER = 200;
+    private final String LOG_TAG = HedgehogCollectionFragment.class.getSimpleName();
+    HedgehogCollectionAdapter mHedgehogCollectionAdapter;
+    RecyclerView mRecyclerView;
 
     private boolean isSingleChoiceMode;
     private boolean isAutoSelectView;
     private long intialSelectedHedgehogPosition = -1;
-
-    HedgehogCollectionAdapter mHedgehogCollectionAdapter;
-    RecyclerView mRecyclerView;
 
     public HedgehogCollectionFragment() {
         // Required empty public constructor
@@ -62,7 +60,7 @@ public class HedgehogCollectionFragment extends Fragment implements LoaderManage
         mHedgehogCollectionAdapter = new HedgehogCollectionAdapter(
                 getActivity(), new HedgehogCollectionAdapter.HedgehogCollectionAdapterOnClickHandler() {
             @Override
-            public void onClick(int hedgehogId,HedgehogCollectionAdapter.HedgehogCollectionAdapterViewHolder viewHolder) {
+            public void onClick(int hedgehogId, HedgehogCollectionAdapter.HedgehogCollectionAdapterViewHolder viewHolder) {
                 ((Callback) getActivity())
                         .onItemSelected(HedgehogContract.HedgehogsEntry.buildHedgehogUri(
                                 hedgehogId));
@@ -116,12 +114,12 @@ public class HedgehogCollectionFragment extends Fragment implements LoaderManage
         mRecyclerView.setAdapter(mHedgehogCollectionAdapter);
         mHedgehogCollectionAdapter.swapCursor(data);
 
-        if(data.getCount() != 0) {
+        if (data.getCount() != 0) {
             mRecyclerView.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-                    @Override
-                    public boolean onPreDraw() {
-                        // Since we know we're going to get items, we keep the listener around until
-                        // we see Children.
+                @Override
+                public boolean onPreDraw() {
+                    // Since we know we're going to get items, we keep the listener around until
+                    // we see Children.
                     if (mRecyclerView.getChildCount() > 0) {
                         int position = mHedgehogCollectionAdapter.getSelectedItemPosition();
 
@@ -140,7 +138,7 @@ public class HedgehogCollectionFragment extends Fragment implements LoaderManage
                             }
                         }
 
-                        if (position == RecyclerView.NO_POSITION){
+                        if (position == RecyclerView.NO_POSITION) {
                             position = 0;
                         }
 
