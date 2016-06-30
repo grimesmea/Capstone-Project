@@ -58,15 +58,15 @@ public class Hedgehog implements Parcelable {
 
     public Hedgehog(Cursor cursor) {
         this(
-                cursor.getInt(TodaysStepsFragment.COL_HEDGEHOG_ID),
-                cursor.getString(TodaysStepsFragment.COL_HEDGEHOG_NAME),
-                cursor.getString(TodaysStepsFragment.COL_HEDGEHOG_IMAGE_NAME),
-                cursor.getString(TodaysStepsFragment.COL_HEDGEHOG_SILHOUETTE_IMAGE_NAME),
-                cursor.getString(TodaysStepsFragment.COL_HEDGEHOG_DESCRIPTION),
-                cursor.getInt(TodaysStepsFragment.COL_HEDGEHOG_HAPPINESS_LEVEL),
-                cursor.getInt(TodaysStepsFragment.COL_HEDGEHOG_FITNESS_LEVEL),
-                getBooleanValue(cursor.getInt(TodaysStepsFragment.COL_HEDGEHOG_UNLOCK_STATUS)),
-                getBooleanValue(cursor.getInt(TodaysStepsFragment.COL_HEDGEHOG_SELECTED_STATUS))
+                cursor.getInt(TodayStepsFragment.COL_HEDGEHOG_ID),
+                cursor.getString(TodayStepsFragment.COL_HEDGEHOG_NAME),
+                cursor.getString(TodayStepsFragment.COL_HEDGEHOG_IMAGE_NAME),
+                cursor.getString(TodayStepsFragment.COL_HEDGEHOG_SILHOUETTE_IMAGE_NAME),
+                cursor.getString(TodayStepsFragment.COL_HEDGEHOG_DESCRIPTION),
+                cursor.getInt(TodayStepsFragment.COL_HEDGEHOG_HAPPINESS_LEVEL),
+                cursor.getInt(TodayStepsFragment.COL_HEDGEHOG_FITNESS_LEVEL),
+                getBooleanValue(cursor.getInt(TodayStepsFragment.COL_HEDGEHOG_UNLOCK_STATUS)),
+                getBooleanValue(cursor.getInt(TodayStepsFragment.COL_HEDGEHOG_SELECTED_STATUS))
         );
     }
 

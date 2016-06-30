@@ -24,7 +24,7 @@ import grimesmea.gmail.com.pricklefit.data.HedgehogContract.HedgehogsEntry;
 /**
  * Displays daily step count and goal.
  */
-public class TodaysStepsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class TodayStepsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
     static final int COL_HEDGEHOG_ID = 0;
     static final int COL_HEDGEHOG_NAME = 1;
@@ -36,13 +36,14 @@ public class TodaysStepsFragment extends Fragment implements LoaderManager.Loade
     static final int COL_HEDGEHOG_UNLOCK_STATUS = 7;
     static final int COL_HEDGEHOG_SELECTED_STATUS = 8;
     private static final int SELECTED_HEDGEHOG_LOADER = 100;
-    private final String LOG_TAG = TodaysStepsFragment.class.getSimpleName();
+    private final String LOG_TAG = TodayStepsFragment.class.getSimpleName();
+    int dailyStepGoal = 0;
     private ImageView hedgehogImageView;
     private TextView dailyStepGoalTextView;
     private Hedgehog selectedHedgehog;
     private Drawable hedgehogDrawable;
 
-    public TodaysStepsFragment() {
+    public TodayStepsFragment() {
         // Empty constructor required for fragment subclasses
     }
 
@@ -57,7 +58,6 @@ public class TodaysStepsFragment extends Fragment implements LoaderManager.Loade
                 null,
                 null
         ).moveToNext()) {
-            Log.d(LOG_TAG, "populating content provider");
             fetchHedgehogs();
         }
     }
@@ -72,12 +72,12 @@ public class TodaysStepsFragment extends Fragment implements LoaderManager.Loade
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_todays_steps, container, false);
         hedgehogImageView = (ImageView) rootView.findViewById(R.id.hedgehog_image);
-        dailyStepGoalTextView = (TextView) rootView.findViewById(R.id.daily_step_goal);
+        dailyStepGoalTextView = (TextView) rootView.findViewById(R.id.today_step_goal);
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
         String dailyStepGoalStr = prefs.getString(getContext().getString(R.string.pref_step_goal_key),
                 getContext().getString(R.string.pref_step_goal_default));
-        int dailyStepGoal = 0;
+        dailyStepGoal = 0;
 
         try {
             dailyStepGoal = Integer.parseInt(dailyStepGoalStr);
@@ -90,7 +90,6 @@ public class TodaysStepsFragment extends Fragment implements LoaderManager.Loade
 
         return rootView;
     }
-
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {

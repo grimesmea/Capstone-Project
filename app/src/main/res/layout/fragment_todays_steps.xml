@@ -16,5 +16,5 @@
         android:layout_height="0dp"
         android:layout_weight="1" />
 
-    <include layout="@layout/todays_steps" />
+    <include layout="@layout/today_steps" />
 </LinearLayout>

@@ -6,7 +6,7 @@
     android:orientation="vertical">
 
     <TextView
-        android:id="@+id/daily_step_count"
+        android:id="@+id/today_step_count"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
@@ -16,7 +16,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:text="@string/todays_steps_label"
+        android:text="@string/today_steps_label"
         android:textSize="28sp" />
 
     <RelativeLayout
@@ -24,7 +24,7 @@
         android:layout_height="wrap_content">
 
         <TextView
-            android:id="@+id/daily_step_goal_label"
+            android:id="@+id/today_step_goal_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
@@ -32,11 +32,11 @@
             android:textSize="24sp" />
 
         <TextView
-            android:id="@+id/daily_step_goal"
+            android:id="@+id/today_step_goal"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:layout_toRightOf="@id/daily_step_goal_label"
+            android:layout_toRightOf="@id/today_step_goal_label"
             android:text="10,000"
             android:textSize="24sp" />
     </RelativeLayout>

@@ -70,7 +70,6 @@ public class HedgehogCollectionFragment extends Fragment implements LoaderManage
                 isSingleChoiceMode);
         mRecyclerView.setAdapter(mHedgehogCollectionAdapter);
 
-
         SimpleDividerItemDecoration dividerItemDecoration = new SimpleDividerItemDecoration(getContext());
         mRecyclerView.addItemDecoration(dividerItemDecoration);
 
@@ -131,7 +130,7 @@ public class HedgehogCollectionFragment extends Fragment implements LoaderManage
                             int count = data.getCount();
                             for (int i = 0; i < count; i++) {
                                 data.moveToPosition(i);
-                                if (data.getInt(TodaysStepsFragment.COL_HEDGEHOG_ID) == intialSelectedHedgehogPosition) {
+                                if (data.getInt(TodayStepsFragment.COL_HEDGEHOG_ID) == intialSelectedHedgehogPosition) {
                                     position = i;
                                     break;
                                 }

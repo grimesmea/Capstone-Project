@@ -18,7 +18,7 @@
 
         <fragment
             android:id="@+id/fragment_todays_steps"
-            android:name="grimesmea.gmail.com.pricklefit.TodaysStepsFragment"
+            android:name="grimesmea.gmail.com.pricklefit.TodayStepsFragment"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:layout_behavior="@string/appbar_scrolling_view_behavior" />

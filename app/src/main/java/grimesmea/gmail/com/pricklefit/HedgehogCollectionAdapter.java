@@ -177,7 +177,7 @@ public class HedgehogCollectionAdapter extends RecyclerView.Adapter<HedgehogColl
         public void onClick(View v) {
             int adapterPosition = getAdapterPosition();
             mCursor.moveToPosition(adapterPosition);
-            mClickHandler.onClick(mCursor.getInt(TodaysStepsFragment.COL_HEDGEHOG_ID), this);
+            mClickHandler.onClick(mCursor.getInt(TodayStepsFragment.COL_HEDGEHOG_ID), this);
             mItemChoiceManager.onClick(this);
         }
     }

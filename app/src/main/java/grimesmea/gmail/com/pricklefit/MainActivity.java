@@ -72,7 +72,7 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        todayStepsTextView = (TextView) findViewById(R.id.daily_step_count);
+        todayStepsTextView = (TextView) findViewById(R.id.today_step_count);
         todayStepsTextView.setText("0");
 
         if (savedInstanceState != null) {

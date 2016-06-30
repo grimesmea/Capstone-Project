@@ -15,7 +15,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center_horizontal"
-        android:text="@string/empty_hedgie_collection_list"
+        android:text="@string/empty_hedgehog_collection_list"
         app:layout_anchor="@+id/recyclerview_hedgehog_collection"
         app:layout_anchorGravity="fill" />
 </FrameLayout>

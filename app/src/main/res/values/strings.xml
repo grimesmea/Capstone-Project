@@ -17,14 +17,14 @@
 
     <string name="action_settings">Settings</string>
     <string name="hedgehog_wheel_description">Hedgehog on exercise wheel</string>
-    <string name="todays_steps_label">steps today</string>
-    <string name="todays_step_count">0</string>
+    <string name="today_steps_label">steps today</string>
+    <string name="today_step_count">0</string>
 
     <!-- Week's Stats Activity -->
     <string name="title_activity_weeks_stats">Week\'s Stats</string>
     <string name="average_steps_placeholder" translatable="false">...</string>
-    <string name="weeks_average_steps_label_start">You averaged</string>
-    <string name="weeks_average_steps_label_end">steps per day this week.</string>
+    <string name="week_average_steps_label_start">You averaged</string>
+    <string name="week_average_steps_label_end">steps per day this week.</string>
     <!-- EmptyView messages -->
     <string name="empty_daily_steps_list">Waiting on data from Google Fit...</string>
     <string name="empty_daily_steps_list_failed_connection">Could not connect to the Google Fit API. Try again later.</string>
@@ -32,7 +32,7 @@
 
     <!-- Hedgehog Collection Activity -->
     <string name="title_activity_hedgehog_collection">Hedgie Collection</string>
-    <string name="empty_hedgie_collection_list">Your hedgehog have gone missing. Please restart the app to try to find them.</string>
+    <string name="empty_hedgehog_collection_list">Your hedgehog have gone missing. Please restart the app to try to find them.</string>
 
     <!-- Hedgehog Detail Fragment -->
     <string name="action_set_active">Set As Home Screen</string>

@@ -41,11 +41,11 @@ import java.util.concurrent.TimeUnit;
  * Encapsulates fetching the daily step counts for the past week as well as the average daily step
  * count and displaying it as a {@link android.support.v7.widget.RecyclerView} layout.
  */
-public class WeeksStatsFragment extends Fragment {
+public class WeekStatsFragment extends Fragment {
 
     private static final int REQUEST_OAUTH = 1;
     private static final String SENSORS_AUTH_PENDING = "sensors_auth_state_pending";
-    private final String LOG_TAG = WeeksStatsFragment.class.getSimpleName();
+    private final String LOG_TAG = WeekStatsFragment.class.getSimpleName();
     RecyclerView mRecyclerView;
     View emptyView;
     TextView averageStepsView;
@@ -55,7 +55,7 @@ public class WeeksStatsFragment extends Fragment {
     private GoogleApiClient mApiClient;
     private int averageSteps;
 
-    public WeeksStatsFragment() {
+    public WeekStatsFragment() {
         // Required empty public constructor
     }
 
@@ -76,7 +76,7 @@ public class WeeksStatsFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_weeks_stats, container, false);
 
-        averageStepsView = (TextView) rootView.findViewById(R.id.weeks_average_steps);
+        averageStepsView = (TextView) rootView.findViewById(R.id.week_average_steps);
 
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.recyclerview_daily_steps);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));

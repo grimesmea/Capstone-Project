@@ -11,32 +11,32 @@
     android:paddingTop="@dimen/activity_vertical_margin">
 
     <TextView
-        android:id="@+id/weeks_average_steps_label_start"
+        android:id="@+id/week_average_steps_label_start"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
-        android:text="@string/weeks_average_steps_label_start"
+        android:text="@string/week_average_steps_label_start"
         android:textAlignment="center"
         android:textColor="@color/dark_grey_text"
         android:textSize="28sp" />
 
     <TextView
-        android:id="@+id/weeks_average_steps"
+        android:id="@+id/week_average_steps"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/weeks_average_steps_label_start"
+        android:layout_below="@id/week_average_steps_label_start"
         android:gravity="center_horizontal"
         android:text="@string/average_steps_placeholder"
         android:textAlignment="center"
         android:textSize="56sp" />
 
     <TextView
-        android:id="@+id/weeks_average_steps_label_end"
+        android:id="@+id/week_average_steps_label_end"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/weeks_average_steps"
+        android:layout_below="@id/week_average_steps"
         android:gravity="center_horizontal"
-        android:text="@string/weeks_average_steps_label_end"
+        android:text="@string/week_average_steps_label_end"
         android:textAlignment="center"
         android:textColor="@color/dark_grey_text"
         android:textSize="28sp" />
