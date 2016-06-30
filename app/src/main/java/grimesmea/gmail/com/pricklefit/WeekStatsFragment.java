@@ -45,15 +45,17 @@ public class WeekStatsFragment extends Fragment {
 
     private static final int REQUEST_OAUTH = 1;
     private static final String SENSORS_AUTH_PENDING = "sensors_auth_state_pending";
+    private static final String DAILY_STEP_TOTALS = "daily_step_totals";
+    private static final String DAILY_STEP_AVERAGE = "daily_step_average";
     private final String LOG_TAG = WeekStatsFragment.class.getSimpleName();
     RecyclerView mRecyclerView;
     View emptyView;
-    TextView averageStepsView;
+    TextView dailyAverageStepsView;
     DailyStepsAdapter mDailyStepsAdapter;
-    List<DailyStepsDTO> dailyStepTotals = new ArrayList<DailyStepsDTO>();
+    ArrayList<DailyStepsDTO> dailyStepTotals = new ArrayList<DailyStepsDTO>();
     private boolean historyAuthInProgress = false;
     private GoogleApiClient mApiClient;
-    private int averageSteps;
+    private int dailyStepAverageSteps;
 
     public WeekStatsFragment() {
         // Required empty public constructor
@@ -65,6 +67,8 @@ public class WeekStatsFragment extends Fragment {
 
         if (savedInstanceState != null) {
             historyAuthInProgress = savedInstanceState.getBoolean(SENSORS_AUTH_PENDING);
+            dailyStepTotals = savedInstanceState.getParcelableArrayList(DAILY_STEP_TOTALS);
+            dailyStepAverageSteps = savedInstanceState.getInt(DAILY_STEP_AVERAGE);
         }
 
         buildHistoryApiClient();
@@ -76,7 +80,10 @@ public class WeekStatsFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_weeks_stats, container, false);
 
-        averageStepsView = (TextView) rootView.findViewById(R.id.week_average_steps);
+        dailyAverageStepsView = (TextView) rootView.findViewById(R.id.week_average_steps);
+        if (dailyStepAverageSteps > 0) {
+            dailyAverageStepsView.setText(String.format("%,d", dailyStepAverageSteps));
+        }
 
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.recyclerview_daily_steps);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
@@ -86,7 +93,20 @@ public class WeekStatsFragment extends Fragment {
         SimpleDividerItemDecoration dividerItemDecoration = new SimpleDividerItemDecoration(getContext());
         mRecyclerView.addItemDecoration(dividerItemDecoration);
 
+        mDailyStepsAdapter = new DailyStepsAdapter(getActivity(), dailyStepTotals, emptyView);
+        mRecyclerView.setAdapter(mDailyStepsAdapter);
+
         return rootView;
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        outState.putParcelableArrayList(DAILY_STEP_TOTALS, dailyStepTotals);
+        outState.putInt(DAILY_STEP_AVERAGE, dailyStepAverageSteps);
+        super.onSaveInstanceState(outState);
+
     }
 
     @Override
@@ -188,7 +208,7 @@ public class WeekStatsFragment extends Fragment {
                     }
                 }
 
-                averageStepsView.setText(String.format("%,d", averageSteps));
+                dailyAverageStepsView.setText(String.format("%,d", dailyStepAverageSteps));
 
                 mDailyStepsAdapter = new DailyStepsAdapter(getActivity(), dailyStepTotals, emptyView);
                 mRecyclerView.setAdapter(mDailyStepsAdapter);
@@ -207,7 +227,7 @@ public class WeekStatsFragment extends Fragment {
             dailyStepTotals.add(dailyStepsDTO);
         }
 
-        averageSteps = calculateAverageSteps(dailyStepTotals);
+        dailyStepAverageSteps = calculateAverageSteps(dailyStepTotals);
     }
 
     private int calculateAverageSteps(List<DailyStepsDTO> dailyStepTotals) {
