@@ -22,11 +22,13 @@
 
     <!-- Week's Stats Activity -->
     <string name="title_activity_weeks_stats">Week\'s Stats</string>
-    <string name="weeks_average_steps" translatable="false">8,290</string>
+    <string name="average_steps_placeholder" translatable="false">...</string>
     <string name="weeks_average_steps_label_start">You averaged</string>
-    <string name="weeks_average_steps_label_end">steps this week.</string>
-    <string name="weeks_average_steps_feedback_message">Keep up the great work!</string>
-    <string name="empty_daily_steps_list">No step data found for the past 7 days.</string>
+    <string name="weeks_average_steps_label_end">steps per day this week.</string>
+    <!-- EmptyView messages -->
+    <string name="empty_daily_steps_list">Waiting on data from Google Fit...</string>
+    <string name="empty_daily_steps_list_failed_connection">Could not connect to the Google Fit API. Try again later.</string>
+    <string name="empty_daily_steps_list_no_data">No step data available for the past 7 days.</string>
 
     <!-- Hedgehog Collection Activity -->
     <string name="title_activity_hedgehog_collection">Hedgie Collection</string>

@@ -19,11 +19,10 @@
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
             app:popupTheme="@style/AppTheme.PopupOverlay" />
-
     </android.support.design.widget.AppBarLayout>
 
     <fragment
-        android:id="@+id/weeks_stats"
+        android:id="@+id/settings_fragment"
         android:name="grimesmea.gmail.com.pricklefit.SettingsFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

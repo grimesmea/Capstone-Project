@@ -17,6 +17,10 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center_horizontal"
+        android:paddingBottom="@dimen/default_padding"
+        android:paddingLeft="@dimen/default_padding"
+        android:paddingRight="@dimen/default_padding"
+        android:paddingTop="@dimen/default_padding"
         android:text="@string/empty_daily_steps_list"
         app:layout_anchor="@+id/recyclerview_daily_steps"
         app:layout_anchorGravity="fill" />

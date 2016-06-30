@@ -6,6 +6,8 @@ import android.support.v7.widget.Toolbar;
 
 public class StatsActivity extends AppCompatActivity {
 
+    private final String LOG_TAG = StatsActivity.class.getSimpleName();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -15,5 +17,4 @@ public class StatsActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
     }
-
 }

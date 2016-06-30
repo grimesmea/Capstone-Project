@@ -7,44 +7,32 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
  * {@link DailyStepsAdapter} exposes a list of daily step counts as well as an average daily step
  * count from a {@link android.database.Cursor} to a {@link android.support.v7.widget.RecyclerView}.
  */
 public class DailyStepsAdapter extends RecyclerView.Adapter<DailyStepsAdapter.DailyStepsAdapterViewHolder> {
 
-    private static final int VIEW_TYPE_AVERAGE_STEPS = 0;
-    private static final int VIEW_TYPE_DAILY_STEPS = 1;
+    private final String LOG_TAG = DailyStepsAdapter.class.getSimpleName();
 
     final private Context mContext;
+    final private List<DailyStepsDTO> mDailyStepTotals;
     final private View mEmptyView;
-    final private boolean mIsLandscape;
 
-    public DailyStepsAdapter(Context context, boolean isLandscape, View emptyView) {
+    public DailyStepsAdapter(Context context, List<DailyStepsDTO> dailyStepTotals, View emptyView) {
         mContext = context;
+        mDailyStepTotals = dailyStepTotals;
+        Collections.sort(dailyStepTotals);
         mEmptyView = emptyView;
-        mIsLandscape = isLandscape;
     }
 
     @Override
     public DailyStepsAdapterViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
         if (viewGroup instanceof RecyclerView) {
-            int layoutId = -1;
-
-            switch (viewType) {
-                case VIEW_TYPE_AVERAGE_STEPS: {
-                    if (!mIsLandscape) {
-                        layoutId = R.layout.average_steps;
-                    } else {
-                        layoutId = R.layout.list_item_daily_steps;
-                    }
-                    break;
-                }
-                case VIEW_TYPE_DAILY_STEPS: {
-                    layoutId = R.layout.list_item_daily_steps;
-                    break;
-                }
-            }
+            int layoutId = R.layout.list_item_daily_steps;
 
             View view = LayoutInflater.from(viewGroup.getContext()).inflate(layoutId, viewGroup, false);
             return new DailyStepsAdapterViewHolder(view);
@@ -54,22 +42,26 @@ public class DailyStepsAdapter extends RecyclerView.Adapter<DailyStepsAdapter.Da
     }
 
     @Override
-    public void onBindViewHolder(DailyStepsAdapterViewHolder dailyStepsAdapterViewHolder, int position) {
-        mEmptyView.setVisibility(getItemCount() == 0 ? View.VISIBLE : View.GONE);
-    }
+    public void onBindViewHolder(DailyStepsAdapterViewHolder viewHolder, int position) {
+        if (getItemCount() == 0) {
+            TextView emptyView = (TextView) mEmptyView.findViewById(R.id.recyclerview_daily_steps_empty);
+            int message = R.string.empty_daily_steps_list;
 
-    @Override
-    public int getItemViewType(int position) {
-        return (position == 0) ? VIEW_TYPE_AVERAGE_STEPS : VIEW_TYPE_DAILY_STEPS;
+            emptyView.setText(message);
+            mEmptyView.setVisibility(View.VISIBLE);
+        } else {
+            mEmptyView.setVisibility(View.GONE);
+        }
+
+        DailyStepsDTO dailySteps = mDailyStepTotals.get(position);
+
+        viewHolder.dayOfWeekView.setText(dailySteps.getFormattedDay());
+        viewHolder.stepCountView.setText(String.format("%,d", dailySteps.getSteps()));
     }
 
     @Override
     public int getItemCount() {
-        if (mIsLandscape) {
-            return 6;
-        } else {
-            return 7;
-        }
+        return mDailyStepTotals.size();
     }
 
     /**
