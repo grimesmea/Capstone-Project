@@ -206,7 +206,7 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
                         // Subscribe to the Google Fit Recordings API for TYPE_STEP_COUNT_DELTA data.
                         subscribeToRecordingApi();
 
-
+                        // Subscribe to the Google Fit History API for TYPE_STEP_COUNT_DELTA data.
                         if (needsToUpdateHedgehogState) {
                             getUnresolvedDaysStepCounts();
                         }

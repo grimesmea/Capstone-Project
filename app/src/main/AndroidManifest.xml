@@ -46,6 +46,7 @@
         </activity>
         <activity
             android:name=".HedgehogDetailActivity"
+            android:label=""
             android:parentActivityName=".HedgehogCollectionActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data

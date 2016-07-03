@@ -44,7 +44,7 @@ import java.util.concurrent.TimeUnit;
 public class WeekStatsFragment extends Fragment {
 
     private static final int REQUEST_OAUTH = 1;
-    private static final String SENSORS_AUTH_PENDING = "sensors_auth_state_pending";
+    private static final String AUTH_PENDING = "auth_state_pending";
     private static final String DAILY_STEP_TOTALS = "daily_step_totals";
     private static final String DAILY_STEP_AVERAGE = "daily_step_average";
     private final String LOG_TAG = WeekStatsFragment.class.getSimpleName();
@@ -53,7 +53,7 @@ public class WeekStatsFragment extends Fragment {
     TextView dailyAverageStepsView;
     DailyStepsAdapter mDailyStepsAdapter;
     ArrayList<DailyStepsDTO> dailyStepTotals = new ArrayList<DailyStepsDTO>();
-    private boolean historyAuthInProgress = false;
+    private boolean authInProgress = false;
     private GoogleApiClient mApiClient;
     private int dailyStepAverageSteps;
 
@@ -66,7 +66,7 @@ public class WeekStatsFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         if (savedInstanceState != null) {
-            historyAuthInProgress = savedInstanceState.getBoolean(SENSORS_AUTH_PENDING);
+            authInProgress = savedInstanceState.getBoolean(AUTH_PENDING);
             dailyStepTotals = savedInstanceState.getParcelableArrayList(DAILY_STEP_TOTALS);
             dailyStepAverageSteps = savedInstanceState.getInt(DAILY_STEP_AVERAGE);
         }
@@ -136,15 +136,15 @@ public class WeekStatsFragment extends Fragment {
                 .enableAutoManage(getActivity(), 0, new GoogleApiClient.OnConnectionFailedListener() {
                     @Override
                     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-                        if (!historyAuthInProgress) {
+                        if (!authInProgress) {
                             try {
-                                historyAuthInProgress = true;
+                                authInProgress = true;
                                 connectionResult.startResolutionForResult(getActivity(), REQUEST_OAUTH);
                             } catch (IntentSender.SendIntentException e) {
                                 Log.e(LOG_TAG, e.toString());
                             }
                         } else {
-                            Log.e(LOG_TAG, "historyAuthInProgress");
+                            Log.e(LOG_TAG, "authInProgress");
                         }
                     }
                 })

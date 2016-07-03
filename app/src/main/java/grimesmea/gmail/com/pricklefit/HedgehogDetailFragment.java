@@ -56,7 +56,6 @@ public class HedgehogDetailFragment extends Fragment implements LoaderManager.Lo
         if (arguments != null) {
             mUri = arguments.getParcelable(DETAIL_URI);
         }
-
         getLoaderManager().initLoader(HEDGEHOG_LOADER, null, this);
     }
 
