@@ -33,18 +33,25 @@ import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.fitness.Fitness;
 import com.google.android.gms.fitness.FitnessStatusCodes;
+import com.google.android.gms.fitness.data.Bucket;
 import com.google.android.gms.fitness.data.DataPoint;
 import com.google.android.gms.fitness.data.DataSet;
 import com.google.android.gms.fitness.data.DataSource;
 import com.google.android.gms.fitness.data.DataType;
 import com.google.android.gms.fitness.data.Field;
 import com.google.android.gms.fitness.data.Value;
+import com.google.android.gms.fitness.request.DataReadRequest;
 import com.google.android.gms.fitness.request.DataSourcesRequest;
 import com.google.android.gms.fitness.request.OnDataPointListener;
 import com.google.android.gms.fitness.request.SensorRequest;
 import com.google.android.gms.fitness.result.DailyTotalResult;
+import com.google.android.gms.fitness.result.DataReadResult;
 import com.google.android.gms.fitness.result.DataSourcesResult;
 
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import grimesmea.gmail.com.pricklefit.data.HedgehogContract.HedgehogsEntry;
@@ -67,15 +74,20 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
 
     private static final int SELECTED_HEDGEHOG_LOADER = 100;
     private static final int REQUEST_OAUTH = 1;
-    private static final String SENSORS_AUTH_PENDING = "sensors_auth_state_pending";
-    private static final String RECORDING_AUTH_PENDING = "recording_auth_state_pending";
+    private static final String AUTH_PENDING = "auth_state_pending";
     private static final String TODAY_STEP_TOTAL = "todayStepTotal";
     private final String LOG_TAG = TodayStepsFragment.class.getSimpleName();
-    private boolean sensorsAuthInProgress = false;
-    private boolean recordingAuthInProgress = false;
+    private boolean authInProgress = false;
     private GoogleApiClient mApiClient;
 
     private Activity activity;
+    private SharedPreferences sharedPrefs;
+    private String hedgehogStateUpdateTimestampStr;
+    private Calendar cal;
+    private boolean needsToUpdateHedgehogState = false;
+    private List<Hedgehog> hedgehogs = new ArrayList<Hedgehog>();
+    private List<DailyStepsDTO> dailyStepTotals = new ArrayList<DailyStepsDTO>();
+
     private int todayStepCount = 0;
     private int dailyStepGoal = 0;
     private ImageView hedgehogImageView;
@@ -102,13 +114,38 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
             fetchHedgehogs();
         }
 
+        cal = Calendar.getInstance();
+        cal.setTime(new Date());
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+
+        sharedPrefs = getContext().getSharedPreferences(
+                getString(R.string.general_prefs_file_key), Context.MODE_PRIVATE);
+        hedgehogStateUpdateTimestampStr = sharedPrefs.getString(
+                getString(R.string.pref_date_last_checked_for_app_state_key),
+                Integer.toString(0));
+
+        if (!hedgehogStateUpdateTimestampStr.equals(Long.toString(cal.getTimeInMillis()))) {
+            if (!hedgehogStateUpdateTimestampStr.equals(Integer.toString(0))) {
+                needsToUpdateHedgehogState = true;
+            } else {
+                needsToUpdateHedgehogState = false;
+            }
+
+            SharedPreferences.Editor editor = sharedPrefs.edit();
+            editor.putString(getString(R.string.pref_date_last_checked_for_app_state_key),
+                    Long.toString(cal.getTimeInMillis()));
+            editor.commit();
+        }
+
         if (savedInstanceState != null) {
-            sensorsAuthInProgress = savedInstanceState.getBoolean(SENSORS_AUTH_PENDING);
-            recordingAuthInProgress = savedInstanceState.getBoolean(RECORDING_AUTH_PENDING);
+            authInProgress = savedInstanceState.getBoolean(AUTH_PENDING);
             todayStepCount = savedInstanceState.getInt(TODAY_STEP_TOTAL);
         }
 
-        buildSensorsApiClient();
+        buildGoogleFitApiClient();
     }
 
     @Override
@@ -131,7 +168,7 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
         try {
             dailyStepGoal = Integer.parseInt(dailyStepGoalStr);
         } catch (NumberFormatException nfe) {
-            System.out.println("Could not parse " + nfe);
+            Log.e(LOG_TAG, nfe.getMessage());
         }
         dailyStepGoalTextView.setText(String.format("%,d", dailyStepGoal));
 
@@ -154,7 +191,7 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
         hedgehogsDataTasks.execute();
     }
 
-    private void buildSensorsApiClient() {
+    private void buildGoogleFitApiClient() {
         mApiClient = new GoogleApiClient.Builder(getActivity())
                 .addApi(Fitness.SENSORS_API)
                 .addApi(Fitness.RECORDING_API)
@@ -168,6 +205,11 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
 
                         // Subscribe to the Google Fit Recordings API for TYPE_STEP_COUNT_DELTA data.
                         subscribeToRecordingApi();
+
+
+                        if (needsToUpdateHedgehogState) {
+                            getUnresolvedDaysStepCounts();
+                        }
 
                         // Find and list sensors data sources using the Google Fit Sensors API for
                         // TYPE_STEP_COUNT_DELTA data.
@@ -201,15 +243,15 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
                 .enableAutoManage(getActivity(), 0, new GoogleApiClient.OnConnectionFailedListener() {
                     @Override
                     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-                        if (!sensorsAuthInProgress) {
+                        if (!authInProgress) {
                             try {
-                                sensorsAuthInProgress = true;
+                                authInProgress = true;
                                 connectionResult.startResolutionForResult(getActivity(), REQUEST_OAUTH);
                             } catch (IntentSender.SendIntentException e) {
 
                             }
                         } else {
-                            Log.e(LOG_TAG, "sensorsAuthInProgress");
+                            Log.e(LOG_TAG, "authInProgress");
                         }
                     }
                 })
@@ -280,7 +322,6 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
             final Value value = dataPoint.getValue(field);
 
             if (activity == null) {
-                Log.e(LOG_TAG, "activity == null");
                 return;
             }
 
@@ -303,10 +344,9 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        Log.d(LOG_TAG, "onCreateLoader");
         CursorLoader cursorLoader = new CursorLoader(
                 getContext(),
-                HedgehogsEntry.buildSelectedHedgehogUri(),
+                HedgehogsEntry.CONTENT_URI,
                 null,
                 null,
                 null,
@@ -319,16 +359,23 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         if (data.moveToFirst()) {
-            selectedHedgehog = new Hedgehog(data);
-            int hedgehogImageResource = getResources().getIdentifier(selectedHedgehog.getImageName(), "drawable", getContext().getPackageName());
+            do {
+                Hedgehog hedgehog = new Hedgehog(data);
+                hedgehogs.add(hedgehog);
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                hedgehogDrawable = getResources().getDrawable(hedgehogImageResource, getContext().getTheme());
-            } else {
-                hedgehogDrawable = getResources().getDrawable(hedgehogImageResource);
-            }
+                if (hedgehog.getIsSelected()) {
+                    selectedHedgehog = hedgehog;
+                    int hedgehogImageResource = getResources().getIdentifier(selectedHedgehog.getImageName(), "drawable", getContext().getPackageName());
 
-            hedgehogImageView.setImageDrawable(hedgehogDrawable);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        hedgehogDrawable = getResources().getDrawable(hedgehogImageResource, getContext().getTheme());
+                    } else {
+                        hedgehogDrawable = getResources().getDrawable(hedgehogImageResource);
+                    }
+
+                    hedgehogImageView.setImageDrawable(hedgehogDrawable);
+                }
+            } while (data.moveToNext());
         }
     }
 
@@ -339,11 +386,101 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
         hedgehogDrawable = null;
     }
 
+    private void getUnresolvedDaysStepCounts() {
+        long endTime;
+        long startTime;
+
+        endTime = cal.getTimeInMillis();
+
+        try {
+            startTime = Long.parseLong(hedgehogStateUpdateTimestampStr);
+        } catch (NumberFormatException nfe) {
+            Log.e(LOG_TAG, nfe.getMessage());
+            return;
+        }
+
+        DataReadRequest readRequest = new DataReadRequest.Builder()
+                // The data request can specify multiple data types to return, effectively
+                // combining multiple data queries into one call.
+                // In this example, it's very unlikely that the request is for several hundred
+                // datapoints each consisting of a few steps and a timestamp.  The more likely
+                // scenario is wanting to see how many steps were walked per day, for 7 days.
+                .aggregate(DataType.TYPE_STEP_COUNT_DELTA, DataType.AGGREGATE_STEP_COUNT_DELTA)
+                // Analogous to a "Group By" in SQL, defines how data should be aggregated.
+                // bucketByTime allows for a time span, whereas bucketBySession would allow
+                // bucketing by "sessions", which would need to be defined in code.
+                .bucketByTime(1, TimeUnit.DAYS)
+                .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
+                .build();
+
+
+        PendingResult<DataReadResult> stepsResult = Fitness.HistoryApi
+                .readData(mApiClient, readRequest);
+        stepsResult.setResultCallback(new ResultCallback() {
+            @Override
+            public void onResult(Result result) {
+                DataReadResult dataReadResult = (DataReadResult) result;
+                dailyStepTotals.clear();
+                if (result.getStatus().isSuccess()) {
+                    if (dataReadResult.getBuckets().size() > 0) {
+                        Log.i(LOG_TAG, "Number of returned buckets of DataSets is: "
+                                + dataReadResult.getBuckets().size());
+                        for (Bucket bucket : dataReadResult.getBuckets()) {
+                            List<DataSet> dataSets = bucket.getDataSets();
+                            for (DataSet dataSet : dataSets) {
+                                extractDailyStepData(dataSet);
+                            }
+                        }
+                    } else if (dataReadResult.getDataSets().size() > 0) {
+                        Log.i(LOG_TAG, "Number of returned DataSets is: "
+                                + dataReadResult.getDataSets().size());
+                        for (DataSet dataSet : dataReadResult.getDataSets()) {
+                            extractDailyStepData(dataSet);
+                        }
+                    }
+                }
+                updateHedgehogStates();
+            }
+        });
+    }
+
+    private void extractDailyStepData(DataSet dataSet) {
+        int dailyStepTotal = 0;
+
+        for (DataPoint dp : dataSet.getDataPoints()) {
+            for (Field field : dp.getDataType().getFields()) {
+                dailyStepTotal = dp.getValue(field).asInt();
+            }
+            DailyStepsDTO dailyStepsDTO = new DailyStepsDTO(dp.getStartTime(TimeUnit.MILLISECONDS), dailyStepTotal);
+            dailyStepTotals.add(dailyStepsDTO);
+        }
+    }
+
+    private void updateHedgehogStates() {
+        if (dailyStepTotals.size() < 1) {
+            return;
+        }
+
+        for (Hedgehog hedgehog : hedgehogs) {
+            if (hedgehog.getIsUnlocked()) {
+                List<Integer> happinessChanges = new ArrayList<Integer>();
+                int newHappinessLevel;
+                for (DailyStepsDTO dailySteps : dailyStepTotals) {
+                    int happinessChange = hedgehog.calculateHappinessChange(dailySteps.getSteps(), dailyStepGoal);
+                    happinessChanges.add(happinessChange);
+                }
+                newHappinessLevel = hedgehog.calculateNewHappinessLevel(happinessChanges);
+                hedgehog.updateHappinessLevel(newHappinessLevel, activity);
+            } else {
+                hedgehog.checkForUnlock(dailyStepTotals, dailyStepGoal, activity);
+            }
+        }
+    }
+
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putBoolean(SENSORS_AUTH_PENDING, sensorsAuthInProgress);
-        outState.putBoolean(RECORDING_AUTH_PENDING, recordingAuthInProgress);
+        outState.putBoolean(AUTH_PENDING, authInProgress);
         outState.putInt(TODAY_STEP_TOTAL, todayStepCount);
     }
 }

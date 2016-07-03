@@ -2,6 +2,9 @@
     <string name="app_name">PrickleFit</string>
 
     <!-- Shared Preferences -->
+    <string name="general_prefs_file_key">general_prefs_file_key</string>
+    <string name="pref_date_last_checked_for_app_state_default">0</string>
+    <string name="pref_date_last_checked_for_app_state_key" translatable="false">date_last_checked_for_app_state</string>
     <string name="pref_step_goal_default">10000</string>
     <string name="pref_step_goal_key" translatable="false">step_goal</string>
     <string name="pref_step_goal_label">Daily Step Goal</string>

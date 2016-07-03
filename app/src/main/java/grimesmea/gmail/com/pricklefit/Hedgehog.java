@@ -1,12 +1,16 @@
 package grimesmea.gmail.com.pricklefit;
 
+import android.app.Activity;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.List;
 
 import grimesmea.gmail.com.pricklefit.data.HedgehogContract.HedgehogsEntry;
 
@@ -32,6 +36,9 @@ public class Hedgehog implements Parcelable {
     final static String FITNESS_LEVEL = "fitness_level";
     final static String IS_UNLOCKED = "unlock_status";
     final static String IS_SELECTED = "selected_status";
+
+    private final int MIN_HAPPINESS_LEVEL = 0;
+    private final int MAX_HAPPINESS_LEVEL = 5;
 
     int id;
     String name;
@@ -144,6 +151,68 @@ public class Hedgehog implements Parcelable {
         parcel.writeByte((byte) (isSelected ? 1 : 0));
     }
 
+    public int calculateHappinessChange(int dailySteps, int dailyStepGoal) {
+        if (dailySteps / fitnessLevel >= dailyStepGoal / 2) {
+            return 1;
+        } else if (dailySteps / fitnessLevel < dailyStepGoal / 4) {
+            return -1;
+        } else {
+            return 0;
+        }
+    }
+
+    public int calculateNewHappinessLevel(List<Integer> happinessChanges) {
+        int newHappinessLevel = happinessLevel;
+        for (int happinessChange : happinessChanges) {
+            int potentialNewHappinessLevel = newHappinessLevel + happinessChange;
+            if (potentialNewHappinessLevel >= MIN_HAPPINESS_LEVEL && potentialNewHappinessLevel <= MAX_HAPPINESS_LEVEL) {
+                newHappinessLevel = potentialNewHappinessLevel;
+            }
+        }
+        return newHappinessLevel;
+    }
+
+    public void updateHappinessLevel(int newHappinessLevel, Activity activity) {
+        if (newHappinessLevel != happinessLevel) {
+            ContentValues happinessLevelValue = new ContentValues();
+            happinessLevelValue.put(HedgehogsEntry.COLUMN_HAPPINESS_LEVEL, newHappinessLevel);
+            activity.getContentResolver().update(
+                    HedgehogsEntry.buildHedgehogUri(this.getId()),
+                    happinessLevelValue,
+                    null,
+                    null
+            );
+        }
+    }
+
+    public void checkForUnlock(List<DailyStepsDTO> dailyStepTotals, int dailyStepGoal, Activity activity) {
+        if (isUnlocked) {
+            return;
+        }
+
+        for (DailyStepsDTO dailySteps : dailyStepTotals) {
+            if (dailyStepGoal / 2 * fitnessLevel >= dailySteps.getSteps()) {
+                unlockHedgehog(activity);
+                return;
+            }
+        }
+    }
+
+    public void unlockHedgehog(Activity activity) {
+        if (isUnlocked) {
+            return;
+        }
+
+        ContentValues unlockStatusValue = new ContentValues();
+        unlockStatusValue.put(HedgehogsEntry.COLUMN_UNLOCK_STATUS, (byte) 1);
+        activity.getContentResolver().update(
+                HedgehogsEntry.buildHedgehogUri(this.getId()),
+                unlockStatusValue,
+                null,
+                null
+        );
+    }
+
     public int getId() {
         return id;
     }
@@ -168,7 +237,7 @@ public class Hedgehog implements Parcelable {
         return happinessLevel;
     }
 
-    public int getFitnessLevelLevel() {
+    public int getFitnessLevel() {
         return fitnessLevel;
     }
 
