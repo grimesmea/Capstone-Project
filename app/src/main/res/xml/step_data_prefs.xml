@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceCategory xmlns:android="http://schemas.android.com/apk/res/android"
+    android:title="@string/step_data_prefs">
+
+    <Preference
+        android:defaultValue="@string/pref_date_last_checked_for_app_state_default"
+        android:key="@string/pref_date_last_checked_for_app_state_key" />
+
+    <Preference
+        android:defaultValue="@string/pref_today_step_count_default"
+        android:key="@string/pref_today_step_count_key" />
+</PreferenceCategory>

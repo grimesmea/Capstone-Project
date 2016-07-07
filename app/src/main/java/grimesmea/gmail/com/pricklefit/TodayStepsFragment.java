@@ -12,8 +12,10 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.util.Log;
@@ -21,6 +23,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -44,7 +47,6 @@ import com.google.android.gms.fitness.request.DataReadRequest;
 import com.google.android.gms.fitness.request.DataSourcesRequest;
 import com.google.android.gms.fitness.request.OnDataPointListener;
 import com.google.android.gms.fitness.request.SensorRequest;
-import com.google.android.gms.fitness.result.DailyTotalResult;
 import com.google.android.gms.fitness.result.DataReadResult;
 import com.google.android.gms.fitness.result.DataSourcesResult;
 
@@ -55,12 +57,13 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import grimesmea.gmail.com.pricklefit.data.HedgehogContract.HedgehogsEntry;
+import grimesmea.gmail.com.pricklefit.sync.FitSyncAdapter;
 
 
 /**
  * Displays daily step count and goal.
  */
-public class TodayStepsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, OnDataPointListener {
+public class TodayStepsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, OnDataPointListener, SharedPreferences.OnSharedPreferenceChangeListener {
 
     static final int COL_HEDGEHOG_ID = 0;
     static final int COL_HEDGEHOG_NAME = 1;
@@ -78,7 +81,7 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
     private static final String TODAY_STEP_TOTAL = "todayStepTotal";
     private final String LOG_TAG = TodayStepsFragment.class.getSimpleName();
     private boolean authInProgress = false;
-    private GoogleApiClient mApiClient;
+    private GoogleApiClient mGoogleApiClient;
 
     private Activity activity;
     private SharedPreferences sharedPrefs;
@@ -88,8 +91,10 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
     private List<Hedgehog> hedgehogs = new ArrayList<Hedgehog>();
     private List<DailyStepsDTO> dailyStepTotals = new ArrayList<DailyStepsDTO>();
 
-    private int todayStepCount = 0;
+    private String todayStepCountStr;
+    private int todayStepCount;
     private int dailyStepGoal = 0;
+    private LinearLayout contentLinearLayout;
     private ImageView hedgehogImageView;
     private TextView todayStepsTextView;
     private TextView dailyStepGoalTextView;
@@ -122,17 +127,15 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
         cal.set(Calendar.MILLISECOND, 0);
 
         sharedPrefs = getContext().getSharedPreferences(
-                getString(R.string.general_prefs_file_key), Context.MODE_PRIVATE);
+                getString(R.string.step_data_prefs), Context.MODE_PRIVATE);
+
         hedgehogStateUpdateTimestampStr = sharedPrefs.getString(
                 getString(R.string.pref_date_last_checked_for_app_state_key),
-                Integer.toString(0));
-
-        if (!hedgehogStateUpdateTimestampStr.equals(Long.toString(cal.getTimeInMillis()))) {
-            if (!hedgehogStateUpdateTimestampStr.equals(Integer.toString(0))) {
-                needsToUpdateHedgehogState = true;
-            } else {
-                needsToUpdateHedgehogState = false;
-            }
+                getString(R.string.pref_date_last_checked_for_app_state_default));
+        if (!hedgehogStateUpdateTimestampStr.equals(Long.toString(cal.getTimeInMillis())) &&
+                !hedgehogStateUpdateTimestampStr.equals(Long.toString(0))) {
+            Log.d(LOG_TAG, "updating pref_date_last_checked_for_app_state; hedgehogStateUpdateTimestampStr = " + hedgehogStateUpdateTimestampStr);
+            needsToUpdateHedgehogState = true;
 
             SharedPreferences.Editor editor = sharedPrefs.edit();
             editor.putString(getString(R.string.pref_date_last_checked_for_app_state_key),
@@ -149,41 +152,58 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
     }
 
     @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (context instanceof Activity) {
+            activity = (Activity) context;
+        }
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_todays_steps, container, false);
+        contentLinearLayout = (LinearLayout) rootView.findViewById(R.id.main_fragment_content);
         hedgehogImageView = (ImageView) rootView.findViewById(R.id.hedgehog_image);
         todayStepsTextView = (TextView) rootView.findViewById(R.id.today_step_count);
         dailyStepGoalTextView = (TextView) rootView.findViewById(R.id.today_step_goal);
 
-        if (todayStepCount > 0) {
-            updateStepCountTextView(todayStepCount);
-        }
-
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
-        String dailyStepGoalStr = prefs.getString(getContext().getString(R.string.pref_step_goal_key),
-                getContext().getString(R.string.pref_step_goal_default));
-        dailyStepGoal = 0;
-
-        try {
-            dailyStepGoal = Integer.parseInt(dailyStepGoalStr);
-        } catch (NumberFormatException nfe) {
-            Log.e(LOG_TAG, nfe.getMessage());
-        }
-        dailyStepGoalTextView.setText(String.format("%,d", dailyStepGoal));
+        sharedPrefs.registerOnSharedPreferenceChangeListener(this);
+        updateDailyStepGoal();
+        updateStepCount();
 
         getLoaderManager().initLoader(SELECTED_HEDGEHOG_LOADER, null, this);
 
         return rootView;
     }
 
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof Activity) {
-            activity = (Activity) context;
+    private void updateDailyStepGoal() {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
+        String dailyStepGoalStr = prefs.getString(getContext().getString(R.string.pref_step_goal_key),
+                getContext().getString(R.string.pref_step_goal_default));
+        try {
+            dailyStepGoal = Integer.parseInt(dailyStepGoalStr);
+        } catch (NumberFormatException nfe) {
+            Log.e(LOG_TAG, nfe.getMessage());
         }
+        dailyStepGoalTextView.setText(String.format("%,d", dailyStepGoal));
+    }
 
+    private void updateStepCount() {
+        Log.d(LOG_TAG, "updating step count from shared prefs");
+        todayStepCountStr = sharedPrefs.getString(
+                getString(R.string.pref_today_step_count_key),
+                getString(R.string.pref_today_step_count_default));
+        try {
+            todayStepCount = Integer.parseInt(todayStepCountStr);
+        } catch (NumberFormatException nfe) {
+            Log.e(LOG_TAG, nfe.getMessage());
+        }
+        updateStepCountTextView(todayStepCount);
+    }
+
+    private void updateStepCountTextView(int currentStepCount) {
+        todayStepsTextView.setText(String.format("%,d", currentStepCount));
     }
 
     private void fetchHedgehogs() {
@@ -192,7 +212,7 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
     }
 
     private void buildGoogleFitApiClient() {
-        mApiClient = new GoogleApiClient.Builder(getActivity())
+        mGoogleApiClient = new GoogleApiClient.Builder(getActivity())
                 .addApi(Fitness.SENSORS_API)
                 .addApi(Fitness.RECORDING_API)
                 .addApi(Fitness.HISTORY_API)
@@ -200,8 +220,7 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
                 .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
                     @Override
                     public void onConnected(@Nullable Bundle bundle) {
-                        // Request steps taken today so far from the Google Fit History API.
-                        getTodaysStepCount();
+                        FitSyncAdapter.initializeSyncAdapter(getActivity());
 
                         // Subscribe to the Google Fit Recordings API for TYPE_STEP_COUNT_DELTA data.
                         subscribeToRecordingApi();
@@ -231,24 +250,44 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
                             }
                         };
 
-                        Fitness.SensorsApi.findDataSources(mApiClient, dataSourceRequest)
+                        Fitness.SensorsApi.findDataSources(mGoogleApiClient, dataSourceRequest)
                                 .setResultCallback(dataSourcesResultCallback);
                     }
 
                     @Override
                     public void onConnectionSuspended(int i) {
-
+                        // If your connection to the sensor gets lost at some point,
+                        // you'll be able to determine the reason and react to it here.
+                        if (i == GoogleApiClient.ConnectionCallbacks.CAUSE_NETWORK_LOST) {
+                            Log.i(LOG_TAG, "Connection lost. Cause: Network Lost.");
+                        } else if (i
+                                == GoogleApiClient.ConnectionCallbacks.CAUSE_SERVICE_DISCONNECTED) {
+                            Log.i(LOG_TAG,
+                                    "Connection lost. Reason: Service Disconnected");
+                        }
                     }
                 })
                 .enableAutoManage(getActivity(), 0, new GoogleApiClient.OnConnectionFailedListener() {
                     @Override
                     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+                        Log.i(LOG_TAG, "Google Play services connection failed. Cause: " +
+                                connectionResult.toString());
+                        Snackbar snackbar = Snackbar.make(
+                                contentLinearLayout,
+                                "Exception while connecting to Google Play services: " +
+                                        connectionResult.getErrorMessage(),
+                                Snackbar.LENGTH_INDEFINITE);
+                        View view = snackbar.getView();
+                        TextView textView = (TextView) view.findViewById(android.support.design.R.id.snackbar_text);
+                        textView.setTextColor(ContextCompat.getColor(getContext(), R.color.light_grey));
+                        snackbar.show();
+
                         if (!authInProgress) {
                             try {
                                 authInProgress = true;
                                 connectionResult.startResolutionForResult(getActivity(), REQUEST_OAUTH);
                             } catch (IntentSender.SendIntentException e) {
-
+                                Log.e(LOG_TAG, e.getMessage());
                             }
                         } else {
                             Log.e(LOG_TAG, "authInProgress");
@@ -258,46 +297,6 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
                 .build();
     }
 
-    private void getTodaysStepCount() {
-        PendingResult<DailyTotalResult> stepsResult = Fitness.HistoryApi
-                .readDailyTotal(mApiClient, DataType.TYPE_STEP_COUNT_DELTA);
-        stepsResult.setResultCallback(new ResultCallback() {
-            @Override
-            public void onResult(Result result) {
-                DailyTotalResult dailyTotalResult = (DailyTotalResult) result;
-                if (result.getStatus().isSuccess()) {
-                    DataSet totalSet = dailyTotalResult.getTotal();
-                    todayStepCount = totalSet.isEmpty()
-                            ? 0
-                            : totalSet.getDataPoints().get(0).getValue(Field.FIELD_STEPS).asInt();
-                    Log.d(LOG_TAG, "Daily step total retrieved from history API. Today's steps = " + Integer.toString(todayStepCount));
-                    updateStepCountTextView(todayStepCount);
-                }
-            }
-        });
-    }
-
-    public void subscribeToRecordingApi() {
-        // To create a subscription, invoke the Recording API. As soon as the subscription is
-        // active, fitness data will start recording.
-        Fitness.RecordingApi.subscribe(mApiClient, DataType.TYPE_STEP_COUNT_DELTA)
-                .setResultCallback(new ResultCallback<Status>() {
-                    @Override
-                    public void onResult(Status status) {
-                        if (status.isSuccess()) {
-                            if (status.getStatusCode()
-                                    == FitnessStatusCodes.SUCCESS_ALREADY_SUBSCRIBED) {
-                                Log.i(LOG_TAG, "Existing subscription for activity detected.");
-                            } else {
-                                Log.i(LOG_TAG, "Successfully subscribed!");
-                            }
-                        } else {
-                            Log.i(LOG_TAG, "There was a problem subscribing.");
-                        }
-                    }
-                });
-    }
-
     private void registerFitnessDataListener(DataSource dataSource, DataType dataType) {
         SensorRequest request = new SensorRequest.Builder()
                 .setDataSource(dataSource)
@@ -305,7 +304,7 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
                 .setSamplingRate(3, TimeUnit.SECONDS)
                 .build();
 
-        Fitness.SensorsApi.add(mApiClient, request, this)
+        Fitness.SensorsApi.add(mGoogleApiClient, request, this)
                 .setResultCallback(new ResultCallback<Status>() {
                     @Override
                     public void onResult(Status status) {
@@ -338,8 +337,25 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
         }
     }
 
-    private void updateStepCountTextView(int currentStepCount) {
-        todayStepsTextView.setText(String.format("%,d", currentStepCount));
+    public void subscribeToRecordingApi() {
+        // To create a subscription, invoke the Recording API. As soon as the subscription is
+        // active, fitness data will start recording.
+        Fitness.RecordingApi.subscribe(mGoogleApiClient, DataType.TYPE_STEP_COUNT_DELTA)
+                .setResultCallback(new ResultCallback<Status>() {
+                    @Override
+                    public void onResult(Status status) {
+                        if (status.isSuccess()) {
+                            if (status.getStatusCode()
+                                    == FitnessStatusCodes.SUCCESS_ALREADY_SUBSCRIBED) {
+                                Log.i(LOG_TAG, "Existing subscription for activity detected.");
+                            } else {
+                                Log.i(LOG_TAG, "Successfully subscribed!");
+                            }
+                        } else {
+                            Log.i(LOG_TAG, "There was a problem subscribing.");
+                        }
+                    }
+                });
     }
 
     @Override
@@ -391,8 +407,8 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
         long startTime;
 
         endTime = cal.getTimeInMillis();
-
         try {
+            Log.d(LOG_TAG, "hedgehogStateUpdateTimestampStr" + " = " + hedgehogStateUpdateTimestampStr);
             startTime = Long.parseLong(hedgehogStateUpdateTimestampStr);
         } catch (NumberFormatException nfe) {
             Log.e(LOG_TAG, nfe.getMessage());
@@ -415,7 +431,7 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
 
 
         PendingResult<DataReadResult> stepsResult = Fitness.HistoryApi
-                .readData(mApiClient, readRequest);
+                .readData(mGoogleApiClient, readRequest);
         stepsResult.setResultCallback(new ResultCallback() {
             @Override
             public void onResult(Result result) {
@@ -440,6 +456,7 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
                     }
                 }
                 updateHedgehogStates();
+                needsToUpdateHedgehogState = false;
             }
         });
     }
@@ -475,6 +492,34 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
                 hedgehog.checkForUnlock(dailyStepTotals, dailyStepGoal, activity);
             }
         }
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        Log.d(LOG_TAG, "step data shared prefs changed");
+        if (key.equals(getString(R.string.pref_today_step_count_key))) {
+            todayStepCountStr = hedgehogStateUpdateTimestampStr = sharedPrefs.getString(
+                    getString(R.string.pref_today_step_count_key),
+                    getString(R.string.pref_today_step_count_default));
+            try {
+                todayStepCount = Integer.parseInt(todayStepCountStr);
+            } catch (NumberFormatException nfe) {
+                Log.e(LOG_TAG, nfe.getMessage());
+            }
+            updateStepCountTextView(todayStepCount);
+        }
+    }
+
+    @Override
+    public void onResume() {
+        sharedPrefs.registerOnSharedPreferenceChangeListener(this);
+        super.onResume();
+    }
+
+    @Override
+    public void onPause() {
+        sharedPrefs.unregisterOnSharedPreferenceChangeListener(this);
+        super.onPause();
     }
 
     @Override

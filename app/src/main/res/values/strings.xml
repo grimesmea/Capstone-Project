@@ -1,11 +1,17 @@
 <resources>
     <string name="app_name">PrickleFit</string>
 
+    <!-- SyncAdapter related -->
+    <string name="sync_account_type">pricklefit.grimesmea.gmail.com</string>
+    <string name="content_authority">grimesmea.gmail.com.pricklefit.dummyprovider</string>
+
     <!-- Shared Preferences -->
-    <string name="general_prefs_file_key">general_prefs_file_key</string>
-    <string name="pref_date_last_checked_for_app_state_default">0</string>
+    <string name="step_data_prefs" translatable="false">step_data_prefs</string>
+    <string name="pref_today_step_count_default" translatable="false">0</string>
+    <string name="pref_today_step_count_key" translatable="false">pref_step_count</string>
+    <string name="pref_date_last_checked_for_app_state_default" translatable="false">0</string>
     <string name="pref_date_last_checked_for_app_state_key" translatable="false">date_last_checked_for_app_state</string>
-    <string name="pref_step_goal_default">10000</string>
+    <string name="pref_step_goal_default" translatable="false">10000</string>
     <string name="pref_step_goal_key" translatable="false">step_goal</string>
     <string name="pref_step_goal_label">Daily Step Goal</string>
     <string name="pref_enable_notifications_default" translatable="false">true</string>
