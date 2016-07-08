@@ -498,7 +498,7 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         Log.d(LOG_TAG, "step data shared prefs changed");
         if (key.equals(getString(R.string.pref_today_step_count_key))) {
-            todayStepCountStr = hedgehogStateUpdateTimestampStr = sharedPrefs.getString(
+            todayStepCountStr = sharedPrefs.getString(
                     getString(R.string.pref_today_step_count_key),
                     getString(R.string.pref_today_step_count_default));
             try {

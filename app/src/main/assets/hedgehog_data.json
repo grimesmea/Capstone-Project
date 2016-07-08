@@ -6,7 +6,7 @@
       "silhouette_image_name": "hedgehog_1_silhouette",
       "description": "Gigi is fun-loving and loves to cuddle.",
       "happiness_level": 5,
-      "fitness_level": 0,
+      "fitness_level": 1,
       "unlock_status": true,
       "selected_status": true
     },
@@ -16,8 +16,8 @@
       "silhouette_image_name": "hedgehog_2_silhouette",
       "description": "Rylai is rambunctious always looking to play.",
       "happiness_level": 1,
-      "fitness_level": 2,
-      "unlock_status": true,
+      "fitness_level": 1,
+      "unlock_status": false,
       "selected_status": false
     },
     {
@@ -26,7 +26,7 @@
       "silhouette_image_name": "hedgehog_3_silhouette",
       "description": "Naru is an explorer and adventurer at heart.",
       "happiness_level": 1,
-      "fitness_level": 1,
+      "fitness_level": 2,
       "unlock_status": false,
       "selected_status": false
     }
