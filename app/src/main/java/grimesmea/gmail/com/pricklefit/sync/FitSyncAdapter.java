@@ -2,16 +2,23 @@ package grimesmea.gmail.com.pricklefit.sync;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SyncRequest;
 import android.content.SyncResult;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -27,27 +34,83 @@ import com.google.android.gms.fitness.data.DataType;
 import com.google.android.gms.fitness.data.Field;
 import com.google.android.gms.fitness.result.DailyTotalResult;
 
+import java.util.Calendar;
+import java.util.Date;
+
+import grimesmea.gmail.com.pricklefit.MainActivity;
 import grimesmea.gmail.com.pricklefit.R;
 
 public class FitSyncAdapter extends AbstractThreadedSyncAdapter
-        implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+        implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
+        SharedPreferences.OnSharedPreferenceChangeListener {
     // Interval at which to sync with the weather, in seconds.
     // 60 seconds (1 minute) * 3 = 3 minutes
     public static final int SYNC_INTERVAL = 60 * 3;
     public static final int SYNC_FLEXTIME = SYNC_INTERVAL / 3;
+    public static final int NOTIFICATION_ID = 1;
     public final String LOG_TAG = FitSyncAdapter.class.getSimpleName();
+    Calendar cal;
     private GoogleApiClient mGoogleApiClient;
-    private SharedPreferences sharedPrefs;
-    private String todayStepsStr;
+    private SharedPreferences stepDataPrefs;
+    private String todayStepCountStr;
+    private int todayStepCount;
+    private String halfwayToGoalNotificationDayTimestampStr;
+    private long halfwayToGoalNotificationDayTimestamp;
+    private String metGoalNotificationDayTimestampStr;
+    private long metGoalNotificationDayTimestamp;
+
+    private SharedPreferences settingsPrefs;
+    private String dailyStepGoalStr;
+    private int dailyStepGoal;
 
     public FitSyncAdapter(Context context, boolean autoInitialize) {
         super(context, autoInitialize);
 
-        sharedPrefs = getContext().getSharedPreferences(
+        cal = Calendar.getInstance();
+        cal.setTime(new Date());
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+
+        stepDataPrefs = getContext().getSharedPreferences(
                 context.getString(R.string.step_data_prefs), Context.MODE_PRIVATE);
-        todayStepsStr = sharedPrefs.getString(
+        todayStepCountStr = stepDataPrefs.getString(
                 context.getString(R.string.pref_today_step_count_key),
                 context.getString(R.string.pref_today_step_count_default));
+        try {
+            todayStepCount = Integer.parseInt(todayStepCountStr);
+        } catch (NumberFormatException nfe) {
+            Log.e(LOG_TAG, nfe.getMessage());
+        }
+
+
+        halfwayToGoalNotificationDayTimestampStr = stepDataPrefs.getString(
+                context.getString(R.string.pref_today_step_count_key),
+                context.getString(R.string.pref_today_step_count_default));
+        try {
+            halfwayToGoalNotificationDayTimestamp = Long.parseLong(halfwayToGoalNotificationDayTimestampStr);
+        } catch (NumberFormatException nfe) {
+            Log.e(LOG_TAG, nfe.getMessage());
+        }
+
+        metGoalNotificationDayTimestampStr = stepDataPrefs.getString(
+                context.getString(R.string.pref_today_step_count_key),
+                context.getString(R.string.pref_today_step_count_default));
+        try {
+            metGoalNotificationDayTimestamp = Long.parseLong(metGoalNotificationDayTimestampStr);
+        } catch (NumberFormatException nfe) {
+            Log.e(LOG_TAG, nfe.getMessage());
+        }
+
+        settingsPrefs = PreferenceManager.getDefaultSharedPreferences(getContext());
+        dailyStepGoalStr = settingsPrefs.getString(context.getString(R.string.pref_step_goal_key),
+                context.getString(R.string.pref_step_goal_default));
+        try {
+            dailyStepGoal = Integer.parseInt(dailyStepGoalStr);
+        } catch (NumberFormatException nfe) {
+            Log.e(LOG_TAG, nfe.getMessage());
+        }
     }
 
     /**
@@ -187,12 +250,13 @@ public class FitSyncAdapter extends AbstractThreadedSyncAdapter
                 DailyTotalResult dailyTotalResult = (DailyTotalResult) result;
                 if (result.getStatus().isSuccess()) {
                     DataSet totalSet = dailyTotalResult.getTotal();
-                    int todayStepCount = totalSet.isEmpty()
+                    int newTodayStepCount = totalSet.isEmpty()
                             ? 0
                             : totalSet.getDataPoints().get(0).getValue(Field.FIELD_STEPS).asInt();
                     Log.d(LOG_TAG, "Daily step total retrieved from history API. Today's steps = " + Integer.toString(todayStepCount));
-                    if (todayStepCount != Integer.parseInt(todayStepsStr)) {
-                        updateTodayStepCount(todayStepCount);
+                    if (newTodayStepCount != todayStepCount) {
+                        todayStepCount = newTodayStepCount;
+                        updateTodayStepCount();
                     }
                 }
                 mGoogleApiClient.disconnect();
@@ -200,13 +264,72 @@ public class FitSyncAdapter extends AbstractThreadedSyncAdapter
         });
     }
 
-    private void updateTodayStepCount(int stepCount) {
-        Log.d(LOG_TAG, "updating today step count shared pref to " + stepCount);
-        todayStepsStr = Integer.toString(stepCount);
-        SharedPreferences.Editor editor = sharedPrefs.edit();
+    private void updateTodayStepCount() {
+        Log.d(LOG_TAG, "updating today step count shared pref to " + todayStepCount);
+        todayStepCountStr = Integer.toString(todayStepCount);
+        checkForNotification();
+
+        SharedPreferences.Editor editor = stepDataPrefs.edit();
         editor.putString(getContext().getString(R.string.pref_today_step_count_key),
-                Integer.toString(stepCount));
+                Integer.toString(todayStepCount));
         editor.commit();
+    }
+
+    private void checkForNotification() {
+        if (dailyStepGoal <= todayStepCount && cal.getTimeInMillis() != metGoalNotificationDayTimestamp) {
+            String notificationTitle = dailyStepGoalStr + " " + getContext().getString(R.string.goal_met_notification_title);
+            String notificationContent = getContext().getString(R.string.goal_met_notification_content);
+            sendNotification(notificationTitle, notificationContent);
+
+            SharedPreferences.Editor editor = stepDataPrefs.edit();
+            editor.putString(getContext().getString(R.string.pref_today_100_percent_goal_notification_timestamp_key),
+                    Long.toString(cal.getTimeInMillis()));
+            editor.commit();
+        } else if (dailyStepGoal / 2 <= todayStepCount && cal.getTimeInMillis() != halfwayToGoalNotificationDayTimestamp) {
+            String notificationTitle = getContext().getString(R.string.goal_halfway_met_notification_title) + " " + dailyStepGoalStr;
+            String notificationContent = getContext().getString(R.string.goal_halfway_met_notification_content);
+            sendNotification(notificationTitle, notificationContent);
+
+            SharedPreferences.Editor editor = stepDataPrefs.edit();
+            editor.putString(getContext().getString(R.string.pref_today_50_percent_goal_notification_timestamp_key),
+                    Long.toString(cal.getTimeInMillis()));
+            editor.commit();
+        }
+    }
+
+    private void sendNotification(String title, String content) {
+        NotificationManager mNotificationManager =
+                (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
+        PendingIntent contentIntent =
+                PendingIntent.getActivity(getContext(), 0, new Intent(getContext(), MainActivity.class), 0);
+
+        Bitmap largeIcon = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.ic_hedgehog);
+        NotificationCompat.Builder mBuilder =
+                new NotificationCompat.Builder(getContext())
+                        .setSmallIcon(R.drawable.ic_hedgehog)
+                        .setLargeIcon(largeIcon)
+                        .setContentTitle(title)
+                        .setStyle(new NotificationCompat.BigTextStyle().bigText(title))
+                        .setContentText(content)
+                        .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+        mBuilder.setContentIntent(contentIntent);
+        mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        Log.d(LOG_TAG, "daily step goal shared prefs changed");
+        if (key.equals(getContext().getString(R.string.pref_step_goal_key))) {
+            dailyStepGoalStr = sharedPreferences.getString(
+                    getContext().getString(R.string.pref_step_goal_key),
+                    getContext().getString(R.string.pref_step_goal_default));
+            try {
+                dailyStepGoal = Integer.parseInt(dailyStepGoalStr);
+            } catch (NumberFormatException nfe) {
+                Log.e(LOG_TAG, nfe.getMessage());
+            }
+            checkForNotification();
+        }
     }
 
     @Override
