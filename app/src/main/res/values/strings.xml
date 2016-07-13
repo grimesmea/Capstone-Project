@@ -58,7 +58,10 @@
 
     <!-- Notifications -->
     <string name="goal_met_notification_title">Goal Met!</string>
-    <string name="goal_met_notification_content">You met your step goal for the day. Keep up the great work!</string>
-    <string name="goal_halfway_met_notification_title">Halfway to Your Goal of</string>
-    <string name="goal_halfway_met_notification_content">You are almost there. Keep moving!</string>
+    <string name="goal_met_notification_content_start">Great job meeting your </string>
+    <string name="goal_met_notification_content_end"> step goal for the day.</string>
+    <string name="goal_halfway_met_notification_title">Halfway There!</string>
+    <string name="goal_halfway_met_notification_content_start">You are almost to your goal of</string>
+    <string name="goal_halfway_met_notification_content_end"> steps.</string>
+    <string name="title_widget_step_count">PrickleFit Step Count</string>
 </resources>
