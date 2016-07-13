@@ -10,6 +10,6 @@
          of a ListView -->
     <item android:drawable="@color/activated" android:state_activated="true" />
 
-    <!-- Default, "just hangin' out" state. -->
+    <!-- Default state -->
     <item android:drawable="@android:color/transparent" />
 </selector>
