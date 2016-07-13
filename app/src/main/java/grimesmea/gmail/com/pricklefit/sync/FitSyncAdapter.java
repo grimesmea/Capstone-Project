@@ -12,8 +12,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SyncRequest;
 import android.content.SyncResult;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -34,6 +32,7 @@ import com.google.android.gms.fitness.data.DataType;
 import com.google.android.gms.fitness.data.Field;
 import com.google.android.gms.fitness.result.DailyTotalResult;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -84,26 +83,26 @@ public class FitSyncAdapter extends AbstractThreadedSyncAdapter
             Log.e(LOG_TAG, nfe.getMessage());
         }
 
-
-        halfwayToGoalNotificationDayTimestampStr = stepDataPrefs.getString(
-                context.getString(R.string.pref_today_step_count_key),
-                context.getString(R.string.pref_today_step_count_default));
-        try {
-            halfwayToGoalNotificationDayTimestamp = Long.parseLong(halfwayToGoalNotificationDayTimestampStr);
-        } catch (NumberFormatException nfe) {
-            Log.e(LOG_TAG, nfe.getMessage());
-        }
-
         metGoalNotificationDayTimestampStr = stepDataPrefs.getString(
-                context.getString(R.string.pref_today_step_count_key),
-                context.getString(R.string.pref_today_step_count_default));
+                context.getString(R.string.pref_today_100_percent_goal_notification_timestamp_key),
+                context.getString(R.string.pref_today_100_percent_goal_notification_timestamp_default));
         try {
             metGoalNotificationDayTimestamp = Long.parseLong(metGoalNotificationDayTimestampStr);
         } catch (NumberFormatException nfe) {
             Log.e(LOG_TAG, nfe.getMessage());
         }
 
+        halfwayToGoalNotificationDayTimestampStr = stepDataPrefs.getString(
+                context.getString(R.string.pref_today_50_percent_goal_notification_timestamp_key),
+                context.getString(R.string.pref_today_50_percent_goal_notification_timestamp_default));
+        try {
+            halfwayToGoalNotificationDayTimestamp = Long.parseLong(halfwayToGoalNotificationDayTimestampStr);
+        } catch (NumberFormatException nfe) {
+            Log.e(LOG_TAG, nfe.getMessage());
+        }
+
         settingsPrefs = PreferenceManager.getDefaultSharedPreferences(getContext());
+
         dailyStepGoalStr = settingsPrefs.getString(context.getString(R.string.pref_step_goal_key),
                 context.getString(R.string.pref_step_goal_default));
         try {
@@ -254,20 +253,18 @@ public class FitSyncAdapter extends AbstractThreadedSyncAdapter
                             ? 0
                             : totalSet.getDataPoints().get(0).getValue(Field.FIELD_STEPS).asInt();
                     Log.d(LOG_TAG, "Daily step total retrieved from history API. Today's steps = " + Integer.toString(todayStepCount));
-                    if (newTodayStepCount != todayStepCount) {
-                        todayStepCount = newTodayStepCount;
-                        updateTodayStepCount();
-                    }
+                    todayStepCount = newTodayStepCount;
                 }
                 mGoogleApiClient.disconnect();
             }
         });
+        updateTodayStepCount();
+        checkForNotification();
     }
 
     private void updateTodayStepCount() {
         Log.d(LOG_TAG, "updating today step count shared pref to " + todayStepCount);
         todayStepCountStr = Integer.toString(todayStepCount);
-        checkForNotification();
 
         SharedPreferences.Editor editor = stepDataPrefs.edit();
         editor.putString(getContext().getString(R.string.pref_today_step_count_key),
@@ -276,38 +273,59 @@ public class FitSyncAdapter extends AbstractThreadedSyncAdapter
     }
 
     private void checkForNotification() {
-        if (dailyStepGoal <= todayStepCount && cal.getTimeInMillis() != metGoalNotificationDayTimestamp) {
-            String notificationTitle = dailyStepGoalStr + " " + getContext().getString(R.string.goal_met_notification_title);
-            String notificationContent = getContext().getString(R.string.goal_met_notification_content);
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("MM/dd/yyyy  HH:mm");
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+
+        Log.d(LOG_TAG, "checking for notification.");
+        if (todayStepCount >= dailyStepGoal && cal.getTimeInMillis() != metGoalNotificationDayTimestamp) {
+            String notificationTitle = getContext().getString(R.string.goal_met_notification_title);
+            String notificationContent =
+                    getContext().getString(R.string.goal_met_notification_content_start) + " " +
+                            String.format("%,d", dailyStepGoal) + " " +
+                            getContext().getString(R.string.goal_met_notification_content_end);
             sendNotification(notificationTitle, notificationContent);
 
             SharedPreferences.Editor editor = stepDataPrefs.edit();
             editor.putString(getContext().getString(R.string.pref_today_100_percent_goal_notification_timestamp_key),
                     Long.toString(cal.getTimeInMillis()));
             editor.commit();
-        } else if (dailyStepGoal / 2 <= todayStepCount && cal.getTimeInMillis() != halfwayToGoalNotificationDayTimestamp) {
-            String notificationTitle = getContext().getString(R.string.goal_halfway_met_notification_title) + " " + dailyStepGoalStr;
-            String notificationContent = getContext().getString(R.string.goal_halfway_met_notification_content);
+
+            metGoalNotificationDayTimestamp = cal.getTimeInMillis();
+            Log.d(LOG_TAG, "metGoalNotificationDayTimestamp is now " + simpleDateFormat.format(metGoalNotificationDayTimestamp));
+        } else if (todayStepCount >= (dailyStepGoal / 2)
+                && cal.getTimeInMillis() != metGoalNotificationDayTimestamp
+                && cal.getTimeInMillis() != halfwayToGoalNotificationDayTimestamp) {
+            String notificationTitle = getContext().getString(R.string.goal_halfway_met_notification_title);
+            String notificationContent =
+                    getContext().getString(R.string.goal_halfway_met_notification_content_start) + " " +
+                            String.format("%,d", dailyStepGoal) + " " +
+                            getContext().getString(R.string.goal_halfway_met_notification_content_end);
             sendNotification(notificationTitle, notificationContent);
 
             SharedPreferences.Editor editor = stepDataPrefs.edit();
             editor.putString(getContext().getString(R.string.pref_today_50_percent_goal_notification_timestamp_key),
                     Long.toString(cal.getTimeInMillis()));
             editor.commit();
+
+            halfwayToGoalNotificationDayTimestamp = cal.getTimeInMillis();
+            Log.d(LOG_TAG, "halfwayToGoalNotificationDayTimestamp is now " + simpleDateFormat.format(halfwayToGoalNotificationDayTimestamp));
+
         }
     }
 
     private void sendNotification(String title, String content) {
+        Log.d(LOG_TAG, "sending notification!");
         NotificationManager mNotificationManager =
                 (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
         PendingIntent contentIntent =
                 PendingIntent.getActivity(getContext(), 0, new Intent(getContext(), MainActivity.class), 0);
 
-        Bitmap largeIcon = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.ic_hedgehog);
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(getContext())
                         .setSmallIcon(R.drawable.ic_hedgehog)
-                        .setLargeIcon(largeIcon)
                         .setContentTitle(title)
                         .setStyle(new NotificationCompat.BigTextStyle().bigText(title))
                         .setContentText(content)
@@ -318,18 +336,45 @@ public class FitSyncAdapter extends AbstractThreadedSyncAdapter
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        Log.d(LOG_TAG, "daily step goal shared prefs changed");
         if (key.equals(getContext().getString(R.string.pref_step_goal_key))) {
+            Log.d(LOG_TAG, "daily step goal shared prefs changed.");
             dailyStepGoalStr = sharedPreferences.getString(
                     getContext().getString(R.string.pref_step_goal_key),
                     getContext().getString(R.string.pref_step_goal_default));
             try {
-                dailyStepGoal = Integer.parseInt(dailyStepGoalStr);
+                int newStepGoal = Integer.parseInt(dailyStepGoalStr);
+                if (todayStepCount < (newStepGoal / 2)) {
+                    resetHalfwayGoalNotificationTimestamp();
+                }
+                if (todayStepCount < newStepGoal) {
+                    resetMetGoalNotificationTimestamp();
+                }
+                dailyStepGoal = newStepGoal;
             } catch (NumberFormatException nfe) {
                 Log.e(LOG_TAG, nfe.getMessage());
             }
             checkForNotification();
         }
+    }
+
+    private void resetHalfwayGoalNotificationTimestamp() {
+        SharedPreferences.Editor editor = stepDataPrefs.edit();
+        editor.putString(
+                getContext().getString(R.string.pref_today_50_percent_goal_notification_timestamp_key),
+                getContext().getString(R.string.pref_today_50_percent_goal_notification_timestamp_default));
+        editor.commit();
+
+        halfwayToGoalNotificationDayTimestamp = 0;
+    }
+
+    private void resetMetGoalNotificationTimestamp() {
+        SharedPreferences.Editor editor = stepDataPrefs.edit();
+        editor.putString(
+                getContext().getString(R.string.pref_today_100_percent_goal_notification_timestamp_key),
+                getContext().getString(R.string.pref_today_100_percent_goal_notification_timestamp_default));
+        editor.commit();
+
+        metGoalNotificationDayTimestamp = 0;
     }
 
     @Override
