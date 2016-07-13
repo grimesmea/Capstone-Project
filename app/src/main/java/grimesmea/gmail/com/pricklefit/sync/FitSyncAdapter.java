@@ -61,6 +61,7 @@ public class FitSyncAdapter extends AbstractThreadedSyncAdapter
     private SharedPreferences settingsPrefs;
     private String dailyStepGoalStr;
     private int dailyStepGoal;
+    private boolean notificationsEnabled;
 
     public FitSyncAdapter(Context context, boolean autoInitialize) {
         super(context, autoInitialize);
@@ -110,6 +111,10 @@ public class FitSyncAdapter extends AbstractThreadedSyncAdapter
         } catch (NumberFormatException nfe) {
             Log.e(LOG_TAG, nfe.getMessage());
         }
+
+        notificationsEnabled = settingsPrefs.getBoolean(
+                context.getString(R.string.pref_enable_notifications_key),
+                Boolean.parseBoolean(context.getString(R.string.pref_enable_notifications_default)));
     }
 
     /**
@@ -273,6 +278,10 @@ public class FitSyncAdapter extends AbstractThreadedSyncAdapter
     }
 
     private void checkForNotification() {
+        if (notificationsEnabled == false) {
+            return;
+        }
+
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("MM/dd/yyyy  HH:mm");
         cal.set(Calendar.HOUR_OF_DAY, 0);
         cal.set(Calendar.MINUTE, 0);
