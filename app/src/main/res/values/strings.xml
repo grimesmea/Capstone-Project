@@ -64,4 +64,8 @@
     <string name="goal_halfway_met_notification_content_start">You are almost to your goal of</string>
     <string name="goal_halfway_met_notification_content_end"> steps.</string>
     <string name="title_widget_step_count">PrickleFit Step Count</string>
+
+    <!-- Widget -->
+    <string name="widget_description">Steps</string>
+    <string name="widget_step_count_placeholder">...</string>
 </resources>

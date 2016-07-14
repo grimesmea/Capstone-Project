@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Step count widget -->
+    <dimen name="widget_step_count_default_width">110dp</dimen>
+    <dimen name="widget_step_count_default_height">40dp</dimen>
+    <dimen name="widget_step_count_min_resize_width">40dp</dimen>
+    <dimen name="widget_step_count_min_resize_height">@dimen/widget_step_count_default_height
+    </dimen>
+    <dimen name="widget_step_count_large_width">220dp</dimen>
+    <dimen name="widget_margin">4dp</dimen>
+    <dimen name="widget_corner_radius">4dp</dimen>
+</resources>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- State when a row is being pressed, but hasn't yet been activated (finger down) -->
+    <item android:state_pressed="true">
+        <ripple xmlns:android="http://schemas.android.com/apk/res/android" android:color="@color/accent">
+            <item android:id="@android:id/mask" android:drawable="@color/dark_grey" />
+            <item android:drawable="@color/dark_grey" />
+        </ripple>
+    </item>
+    <!-- When the view is "activated".-->
+    <item android:state_activated="true">
+        <shape>
+            <solid android:color="@color/activated" />
+            <corners android:radius="@dimen/widget_corner_radius" />
+        </shape>
+    </item>
+
+    <!-- Default state -->
+    <item>
+        <shape>
+            <solid android:color="@color/dark_grey" />
+            <corners android:radius="@dimen/widget_corner_radius" />
+        </shape>
+    </item>
+</selector>

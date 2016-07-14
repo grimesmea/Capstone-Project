@@ -38,10 +38,13 @@ import java.util.Date;
 
 import grimesmea.gmail.com.pricklefit.MainActivity;
 import grimesmea.gmail.com.pricklefit.R;
+import grimesmea.gmail.com.pricklefit.widget.StepCountWidgetIntentService;
 
 public class FitSyncAdapter extends AbstractThreadedSyncAdapter
         implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
         SharedPreferences.OnSharedPreferenceChangeListener {
+    public static final String ACTION_DATA_UPDATED =
+            "grimesmea.gmail.com.pricklefit.ACTION_DATA_UPDATED";
     // Interval at which to sync with the weather, in seconds.
     // 60 seconds (1 minute) * 3 = 3 minutes
     public static final int SYNC_INTERVAL = 60 * 3;
@@ -265,6 +268,7 @@ public class FitSyncAdapter extends AbstractThreadedSyncAdapter
         });
         updateTodayStepCount();
         checkForNotification();
+        updateWidgets();
     }
 
     private void updateTodayStepCount() {
@@ -275,6 +279,15 @@ public class FitSyncAdapter extends AbstractThreadedSyncAdapter
         editor.putString(getContext().getString(R.string.pref_today_step_count_key),
                 Integer.toString(todayStepCount));
         editor.commit();
+    }
+
+    private void updateWidgets() {
+        StepCountWidgetIntentService.updateWidget(getContext());
+
+        Context context = getContext();
+        Intent dataUpdatedIntent = new Intent(ACTION_DATA_UPDATED)
+                .setPackage(context.getPackageName());
+        context.sendBroadcast(dataUpdatedIntent);
     }
 
     private void checkForNotification() {

@@ -99,6 +99,20 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />
         </activity>
-    </application>
 
+        <receiver
+            android:name=".widget.StepCountWidgetProvider"
+            android:label="@string/title_widget_step_count">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="grimesmea.gmail.com.pricklefit.ACTION_DATA_UPDATED" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_step_count" />
+        </receiver>
+
+        <service android:name=".widget.StepCountWidgetIntentService" />
+    </application>
 </manifest>
