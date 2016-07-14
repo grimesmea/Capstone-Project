@@ -40,10 +40,10 @@ public class HedgehogProvider extends ContentProvider {
         final UriMatcher matcher = new UriMatcher(UriMatcher.NO_MATCH);
         final String authority = HedgehogContract.CONTENT_AUTHORITY;
 
-        matcher.addURI(authority, HedgehogContract.PATH_HEDGEHOG, HEDGEHOGS);
-        matcher.addURI(authority, HedgehogContract.PATH_HEDGEHOG + "/#", HEDGEHOG);
-        matcher.addURI(authority, HedgehogContract.PATH_HEDGEHOG + "/unlockedHedgehogs", UNLOCKED_HEDGEHOGS);
-        matcher.addURI(authority, HedgehogContract.PATH_HEDGEHOG + "/selectedHedgehog", SELECTED_HEDGEHOG);
+        matcher.addURI(authority, HedgehogContract.PATH_HEDGEHOGS, HEDGEHOGS);
+        matcher.addURI(authority, HedgehogContract.PATH_HEDGEHOGS + "/#", HEDGEHOG);
+        matcher.addURI(authority, HedgehogContract.PATH_HEDGEHOGS + "/unlockedHedgehogs", UNLOCKED_HEDGEHOGS);
+        matcher.addURI(authority, HedgehogContract.PATH_HEDGEHOGS + "/selectedHedgehog", SELECTED_HEDGEHOG);
         return matcher;
     }
 
