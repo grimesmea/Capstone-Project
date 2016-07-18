@@ -2,6 +2,7 @@ package grimesmea.gmail.com.pricklefit;
 
 
 import android.app.Activity;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
@@ -50,20 +51,25 @@ import com.google.android.gms.fitness.request.SensorRequest;
 import com.google.android.gms.fitness.result.DataReadResult;
 import com.google.android.gms.fitness.result.DataSourcesResult;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import grimesmea.gmail.com.pricklefit.data.HedgehogContract;
+import grimesmea.gmail.com.pricklefit.data.HedgehogContract.AppStateEntry;
 import grimesmea.gmail.com.pricklefit.data.HedgehogContract.HedgehogsEntry;
 import grimesmea.gmail.com.pricklefit.sync.FitSyncAdapter;
 
 
 /**
- * Displays daily step count and goal.
+ * Fragment displaying daily step count and goal. Updating of hedgehog "states" (unlock status,
+ * happiness level) are also performed on a daily basis.
  */
-public class TodayStepsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, OnDataPointListener, SharedPreferences.OnSharedPreferenceChangeListener {
+public class TodayStepsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>,
+        OnDataPointListener {
 
     static final int COL_HEDGEHOG_ID = 0;
     static final int COL_HEDGEHOG_NAME = 1;
@@ -75,25 +81,32 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
     static final int COL_HEDGEHOG_UNLOCK_STATUS = 7;
     static final int COL_HEDGEHOG_SELECTED_STATUS = 8;
 
+    static final int COL_DAILY_STEP_GOAL = 1;
+    static final int COL_NOTIFICATIONS_ENABLED_STATUS = 2;
+    static final int COL_CURRENT_DAILY_STEP_TOTAL = 3;
+    static final int COL_HEDGEHOG_STATE_UPDATE_TIMESTAMP = 4;
+    static final int COL_GOAL_MET_NOTIFICATION_TIMESTAMP = 5;
+    static final int COL_GOAL_HALF_MET_NOTIFICATION_TIMESTAMP = 6;
     private static final int SELECTED_HEDGEHOG_LOADER = 100;
+    private static final int APP_STATE_LOADER = 200;
     private static final int REQUEST_OAUTH = 1;
     private static final String AUTH_PENDING = "auth_state_pending";
     private static final String TODAY_STEP_TOTAL = "todayStepTotal";
     private final String LOG_TAG = TodayStepsFragment.class.getSimpleName();
+    Calendar cal = Calendar.getInstance();
+    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("MM/dd/yyyy  HH:mm");
+    SharedPreferences sharedPreferences;
     private boolean authInProgress = false;
     private GoogleApiClient mGoogleApiClient;
-
     private Activity activity;
-    private SharedPreferences sharedPrefs;
-    private String hedgehogStateUpdateTimestampStr;
-    private Calendar cal;
-    private boolean needsToUpdateHedgehogState = false;
     private List<Hedgehog> hedgehogs = new ArrayList<Hedgehog>();
     private List<DailyStepsDTO> dailyStepTotals = new ArrayList<DailyStepsDTO>();
-
-    private String todayStepCountStr;
     private int todayStepCount;
-    private int dailyStepGoal = 0;
+    private int dailyStepGoal;
+    private long hedgehogStateUpdateTimestamp;
+    private boolean isNotificationsEnabled;
+    private boolean needsToUpdateHedgehogState = false;
+    private long todayTimeStamp;
     private LinearLayout contentLinearLayout;
     private ImageView hedgehogImageView;
     private TextView todayStepsTextView;
@@ -119,34 +132,22 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
             fetchHedgehogs();
         }
 
-        cal = Calendar.getInstance();
-        cal.setTime(new Date());
-        cal.set(Calendar.HOUR_OF_DAY, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.MILLISECOND, 0);
-
-        sharedPrefs = getContext().getSharedPreferences(
-                getString(R.string.step_data_prefs), Context.MODE_PRIVATE);
-
-        hedgehogStateUpdateTimestampStr = sharedPrefs.getString(
-                getString(R.string.pref_date_last_checked_for_app_state_key),
-                getString(R.string.pref_date_last_checked_for_app_state_default));
-        if (!hedgehogStateUpdateTimestampStr.equals(Long.toString(cal.getTimeInMillis())) &&
-                !hedgehogStateUpdateTimestampStr.equals(Long.toString(0))) {
-            Log.d(LOG_TAG, "updating pref_date_last_checked_for_app_state; hedgehogStateUpdateTimestampStr = " + hedgehogStateUpdateTimestampStr);
-            needsToUpdateHedgehogState = true;
-
-            SharedPreferences.Editor editor = sharedPrefs.edit();
-            editor.putString(getString(R.string.pref_date_last_checked_for_app_state_key),
-                    Long.toString(cal.getTimeInMillis()));
-            editor.commit();
+        if (!getActivity().getContentResolver().query(
+                AppStateEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                null
+        ).moveToNext()) {
+            fetchAppState();
         }
 
         if (savedInstanceState != null) {
             authInProgress = savedInstanceState.getBoolean(AUTH_PENDING);
             todayStepCount = savedInstanceState.getInt(TODAY_STEP_TOTAL);
         }
+
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
 
         buildGoogleFitApiClient();
     }
@@ -168,47 +169,28 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
         todayStepsTextView = (TextView) rootView.findViewById(R.id.today_step_count);
         dailyStepGoalTextView = (TextView) rootView.findViewById(R.id.today_step_goal);
 
-        sharedPrefs.registerOnSharedPreferenceChangeListener(this);
-        updateDailyStepGoal();
-        updateStepCount();
-
         getLoaderManager().initLoader(SELECTED_HEDGEHOG_LOADER, null, this);
+        getLoaderManager().initLoader(APP_STATE_LOADER, null, this);
 
         return rootView;
     }
 
-    private void updateDailyStepGoal() {
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
-        String dailyStepGoalStr = prefs.getString(getContext().getString(R.string.pref_step_goal_key),
-                getContext().getString(R.string.pref_step_goal_default));
-        try {
-            dailyStepGoal = Integer.parseInt(dailyStepGoalStr);
-        } catch (NumberFormatException nfe) {
-            Log.e(LOG_TAG, nfe.getMessage());
-        }
+    private void updateStepCountTextView() {
+        todayStepsTextView.setText(String.format("%,d", todayStepCount));
+    }
+
+    private void updateDailyStepGoalTextView() {
         dailyStepGoalTextView.setText(String.format("%,d", dailyStepGoal));
-    }
-
-    private void updateStepCount() {
-        Log.d(LOG_TAG, "updating step count from shared prefs");
-        todayStepCountStr = sharedPrefs.getString(
-                getString(R.string.pref_today_step_count_key),
-                getString(R.string.pref_today_step_count_default));
-        try {
-            todayStepCount = Integer.parseInt(todayStepCountStr);
-        } catch (NumberFormatException nfe) {
-            Log.e(LOG_TAG, nfe.getMessage());
-        }
-        updateStepCountTextView(todayStepCount);
-    }
-
-    private void updateStepCountTextView(int currentStepCount) {
-        todayStepsTextView.setText(String.format("%,d", currentStepCount));
     }
 
     private void fetchHedgehogs() {
         FetchHedgehogsDataTask hedgehogsDataTasks = new FetchHedgehogsDataTask(getActivity());
         hedgehogsDataTasks.execute();
+    }
+
+    private void fetchAppState() {
+        FetchAppStateDataTask appStateDataTasks = new FetchAppStateDataTask(getActivity());
+        appStateDataTasks.execute();
     }
 
     private void buildGoogleFitApiClient() {
@@ -327,10 +309,11 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    Log.d(LOG_TAG, "DELTA STEPS " + Integer.toString(value.asInt()));
+                    Log.d(LOG_TAG, "Delta step = " + Integer.toString(value.asInt()));
                     if (value.asInt() > 0) {
                         todayStepCount += value.asInt();
-                        updateStepCountTextView(todayStepCount);
+                        updateStepCountTextView();
+                        Log.d(LOG_TAG, "todayStepCount = " + Integer.toString(value.asInt()));
                     }
                 }
             });
@@ -360,39 +343,120 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        CursorLoader cursorLoader = new CursorLoader(
-                getContext(),
-                HedgehogsEntry.CONTENT_URI,
-                null,
-                null,
-                null,
-                null
-        );
+        switch (id) {
+            case SELECTED_HEDGEHOG_LOADER:
+                return new CursorLoader(
+                        getContext(),
+                        HedgehogsEntry.CONTENT_URI,
+                        null,
+                        null,
+                        null,
+                        null
+                );
+            case APP_STATE_LOADER:
+                return new CursorLoader(
+                        getContext(),
+                        AppStateEntry.CONTENT_URI,
+                        null,
+                        null,
+                        null,
+                        null
+                );
+            default:
+                return null;
+        }
 
-        return cursorLoader;
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        if (data.moveToFirst()) {
-            do {
-                Hedgehog hedgehog = new Hedgehog(data);
-                hedgehogs.add(hedgehog);
+        switch (loader.getId()) {
+            case SELECTED_HEDGEHOG_LOADER:
+                if (data.moveToFirst()) {
+                    do {
+                        Hedgehog hedgehog = new Hedgehog(data);
+                        hedgehogs.add(hedgehog);
 
-                if (hedgehog.getIsSelected()) {
-                    selectedHedgehog = hedgehog;
-                    int hedgehogImageResource = getResources().getIdentifier(selectedHedgehog.getImageName(), "drawable", getContext().getPackageName());
+                        if (hedgehog.getIsSelected()) {
+                            selectedHedgehog = hedgehog;
+                            int hedgehogImageResource = getResources().getIdentifier(selectedHedgehog.getImageName(), "drawable", getContext().getPackageName());
 
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        hedgehogDrawable = getResources().getDrawable(hedgehogImageResource, getContext().getTheme());
-                    } else {
-                        hedgehogDrawable = getResources().getDrawable(hedgehogImageResource);
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                hedgehogDrawable = getResources().getDrawable(hedgehogImageResource, getContext().getTheme());
+                            } else {
+                                hedgehogDrawable = getResources().getDrawable(hedgehogImageResource);
+                            }
+
+                            hedgehogImageView.setImageDrawable(hedgehogDrawable);
+                        }
+                    } while (data.moveToNext());
+                }
+            case APP_STATE_LOADER:
+                if (data.moveToFirst()) {
+                    AppStateDTO appStateDTO = new AppStateDTO(data);
+                    todayStepCount = appStateDTO.getCurrentDailyStepCount();
+                    if (todayStepCount != 0) {
+                        updateStepCountTextView();
                     }
 
-                    hedgehogImageView.setImageDrawable(hedgehogDrawable);
+                    dailyStepGoal = appStateDTO.getDailyStepGoal();
+                    if (dailyStepGoal != 0) {
+                        updateDailyStepGoalPref();
+                        updateDailyStepGoalTextView();
+                    }
+
+                    if (isNotificationsEnabled != appStateDTO.isNotificationsEnabled()) {
+                        isNotificationsEnabled = appStateDTO.isNotificationsEnabled();
+                        updateNotificationsEnablePref();
+                    }
+
+                    hedgehogStateUpdateTimestamp = appStateDTO.getHedgehogStateUpdateTimestamp();
+                    updateTodayTimeStamp();
+                    if (hedgehogStateUpdateTimestamp != todayTimeStamp &&
+                            hedgehogStateUpdateTimestamp != 0) {
+                        Log.d(LOG_TAG, "Updating hedgehogStateUpdateTimestamp in Content Provider to " + simpleDateFormat.format(todayTimeStamp));
+                        needsToUpdateHedgehogState = true;
+                        ContentValues hedgehogStateUpdateTimestampCountValue = new ContentValues();
+                        hedgehogStateUpdateTimestampCountValue.put(
+                                AppStateEntry.COLUMN_HEDGEHOG_STATE_UPDATE_TIMESTAMP, todayTimeStamp);
+
+                        // Update goal met timestamp in database.
+                        if (hedgehogStateUpdateTimestampCountValue.size() > 0) {
+                            getContext().getContentResolver().update(
+                                    HedgehogContract.AppStateEntry.CONTENT_URI,
+                                    hedgehogStateUpdateTimestampCountValue,
+                                    null,
+                                    null);
+                        }
+                        Log.d(LOG_TAG, "HedgehogStateUpdateTimestamp in Content Provider is now " + simpleDateFormat.format(todayTimeStamp));
+                    }
                 }
-            } while (data.moveToNext());
+            default:
+                return;
         }
+    }
+
+    private void updateDailyStepGoalPref() {
+        sharedPreferences.edit().putString(getString(R.string.pref_step_goal_key),
+                String.valueOf(dailyStepGoal))
+                .apply();
+    }
+
+    private void updateNotificationsEnablePref() {
+        Log.d(LOG_TAG, "Updating notifications enabled pref");
+        sharedPreferences.edit().putBoolean(getString(R.string.pref_notifications_enabled_key),
+                isNotificationsEnabled)
+                .apply();
+    }
+
+    private long updateTodayTimeStamp() {
+        cal.setTime(new Date());
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        todayTimeStamp = cal.getTimeInMillis();
+        return todayTimeStamp;
     }
 
     @Override
@@ -406,14 +470,9 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
         long endTime;
         long startTime;
 
-        endTime = cal.getTimeInMillis();
-        try {
-            Log.d(LOG_TAG, "hedgehogStateUpdateTimestampStr" + " = " + hedgehogStateUpdateTimestampStr);
-            startTime = Long.parseLong(hedgehogStateUpdateTimestampStr);
-        } catch (NumberFormatException nfe) {
-            Log.e(LOG_TAG, nfe.getMessage());
-            return;
-        }
+        endTime = updateTodayTimeStamp();
+        startTime = hedgehogStateUpdateTimestamp;
+
 
         DataReadRequest readRequest = new DataReadRequest.Builder()
                 // The data request can specify multiple data types to return, effectively
@@ -492,34 +551,6 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
                 hedgehog.checkForUnlock(dailyStepTotals, dailyStepGoal, activity);
             }
         }
-    }
-
-    @Override
-    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        Log.d(LOG_TAG, "step data shared prefs changed");
-        if (key.equals(getString(R.string.pref_today_step_count_key))) {
-            todayStepCountStr = sharedPrefs.getString(
-                    getString(R.string.pref_today_step_count_key),
-                    getString(R.string.pref_today_step_count_default));
-            try {
-                todayStepCount = Integer.parseInt(todayStepCountStr);
-            } catch (NumberFormatException nfe) {
-                Log.e(LOG_TAG, nfe.getMessage());
-            }
-            updateStepCountTextView(todayStepCount);
-        }
-    }
-
-    @Override
-    public void onResume() {
-        sharedPrefs.registerOnSharedPreferenceChangeListener(this);
-        super.onResume();
-    }
-
-    @Override
-    public void onPause() {
-        sharedPrefs.unregisterOnSharedPreferenceChangeListener(this);
-        super.onPause();
     }
 
     @Override

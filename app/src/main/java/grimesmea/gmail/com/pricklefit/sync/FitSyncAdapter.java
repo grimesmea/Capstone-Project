@@ -7,14 +7,15 @@ import android.app.PendingIntent;
 import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
 import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.SyncRequest;
 import android.content.SyncResult;
+import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
@@ -36,13 +37,14 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
+import grimesmea.gmail.com.pricklefit.AppStateDTO;
 import grimesmea.gmail.com.pricklefit.MainActivity;
 import grimesmea.gmail.com.pricklefit.R;
+import grimesmea.gmail.com.pricklefit.data.HedgehogContract;
 import grimesmea.gmail.com.pricklefit.widget.StepCountWidgetIntentService;
 
 public class FitSyncAdapter extends AbstractThreadedSyncAdapter
-        implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
-        SharedPreferences.OnSharedPreferenceChangeListener {
+        implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
     public static final String ACTION_DATA_UPDATED =
             "grimesmea.gmail.com.pricklefit.ACTION_DATA_UPDATED";
     // Interval at which to sync with the weather, in seconds.
@@ -52,17 +54,12 @@ public class FitSyncAdapter extends AbstractThreadedSyncAdapter
     public static final int NOTIFICATION_ID = 1;
     public final String LOG_TAG = FitSyncAdapter.class.getSimpleName();
     Calendar cal;
+    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("MM/dd/yyyy  HH:mm");
+    private AppStateContentObserver appStateContentObserver;
     private GoogleApiClient mGoogleApiClient;
-    private SharedPreferences stepDataPrefs;
-    private String todayStepCountStr;
     private int todayStepCount;
-    private String halfwayToGoalNotificationDayTimestampStr;
-    private long halfwayToGoalNotificationDayTimestamp;
-    private String metGoalNotificationDayTimestampStr;
-    private long metGoalNotificationDayTimestamp;
-
-    private SharedPreferences settingsPrefs;
-    private String dailyStepGoalStr;
+    private long goalHalfMetNotificationTimestamp;
+    private long goalMetNotificationTimestamp;
     private int dailyStepGoal;
     private boolean notificationsEnabled;
 
@@ -76,48 +73,26 @@ public class FitSyncAdapter extends AbstractThreadedSyncAdapter
         cal.set(Calendar.SECOND, 0);
         cal.set(Calendar.MILLISECOND, 0);
 
-        stepDataPrefs = getContext().getSharedPreferences(
-                context.getString(R.string.step_data_prefs), Context.MODE_PRIVATE);
-        todayStepCountStr = stepDataPrefs.getString(
-                context.getString(R.string.pref_today_step_count_key),
-                context.getString(R.string.pref_today_step_count_default));
-        try {
-            todayStepCount = Integer.parseInt(todayStepCountStr);
-        } catch (NumberFormatException nfe) {
-            Log.e(LOG_TAG, nfe.getMessage());
+        appStateContentObserver = new AppStateContentObserver(new Handler(), this);
+        getContext().getContentResolver().registerContentObserver(
+                HedgehogContract.AppStateEntry.CONTENT_URI,
+                false,
+                appStateContentObserver);
+
+        Cursor appSateCursor = getContext().getContentResolver().query(
+                HedgehogContract.AppStateEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                null);
+        if (appSateCursor.moveToFirst()) {
+            AppStateDTO appStateDTO = new AppStateDTO(appSateCursor);
+            todayStepCount = appStateDTO.getCurrentDailyStepCount();
+            dailyStepGoal = appStateDTO.getDailyStepGoal();
+            notificationsEnabled = appStateDTO.isNotificationsEnabled();
+            goalMetNotificationTimestamp = appStateDTO.getGoalMetNotificationTimestamp();
+            goalHalfMetNotificationTimestamp = appStateDTO.getGoalHalfMetNotificationTimestamp();
         }
-
-        metGoalNotificationDayTimestampStr = stepDataPrefs.getString(
-                context.getString(R.string.pref_today_100_percent_goal_notification_timestamp_key),
-                context.getString(R.string.pref_today_100_percent_goal_notification_timestamp_default));
-        try {
-            metGoalNotificationDayTimestamp = Long.parseLong(metGoalNotificationDayTimestampStr);
-        } catch (NumberFormatException nfe) {
-            Log.e(LOG_TAG, nfe.getMessage());
-        }
-
-        halfwayToGoalNotificationDayTimestampStr = stepDataPrefs.getString(
-                context.getString(R.string.pref_today_50_percent_goal_notification_timestamp_key),
-                context.getString(R.string.pref_today_50_percent_goal_notification_timestamp_default));
-        try {
-            halfwayToGoalNotificationDayTimestamp = Long.parseLong(halfwayToGoalNotificationDayTimestampStr);
-        } catch (NumberFormatException nfe) {
-            Log.e(LOG_TAG, nfe.getMessage());
-        }
-
-        settingsPrefs = PreferenceManager.getDefaultSharedPreferences(getContext());
-
-        dailyStepGoalStr = settingsPrefs.getString(context.getString(R.string.pref_step_goal_key),
-                context.getString(R.string.pref_step_goal_default));
-        try {
-            dailyStepGoal = Integer.parseInt(dailyStepGoalStr);
-        } catch (NumberFormatException nfe) {
-            Log.e(LOG_TAG, nfe.getMessage());
-        }
-
-        notificationsEnabled = settingsPrefs.getBoolean(
-                context.getString(R.string.pref_enable_notifications_key),
-                Boolean.parseBoolean(context.getString(R.string.pref_enable_notifications_default)));
     }
 
     /**
@@ -260,29 +235,36 @@ public class FitSyncAdapter extends AbstractThreadedSyncAdapter
                     int newTodayStepCount = totalSet.isEmpty()
                             ? 0
                             : totalSet.getDataPoints().get(0).getValue(Field.FIELD_STEPS).asInt();
-                    Log.d(LOG_TAG, "Daily step total retrieved from history API. Today's steps = " + Integer.toString(todayStepCount));
+                    Log.d(LOG_TAG, "Daily step total retrieved from history API. Today's steps = "
+                            + newTodayStepCount);
                     todayStepCount = newTodayStepCount;
+                    updateTodayStepCount();
+                    checkForNotification();
+                    updateWidgets();
                 }
                 mGoogleApiClient.disconnect();
             }
         });
-        updateTodayStepCount();
-        checkForNotification();
-        updateWidgets();
     }
 
     private void updateTodayStepCount() {
-        Log.d(LOG_TAG, "updating today step count shared pref to " + todayStepCount);
-        todayStepCountStr = Integer.toString(todayStepCount);
+        Log.d(LOG_TAG, "Updating current step count to " + todayStepCount);
+        ContentValues currentDailyStepCountValue = new ContentValues();
+        currentDailyStepCountValue.put(
+                HedgehogContract.AppStateEntry.COLUMN_CURRENT_DAILY_STEP_TOTAL, todayStepCount);
 
-        SharedPreferences.Editor editor = stepDataPrefs.edit();
-        editor.putString(getContext().getString(R.string.pref_today_step_count_key),
-                Integer.toString(todayStepCount));
-        editor.commit();
+        // Update current daily step count in database.
+        if (currentDailyStepCountValue.size() > 0) {
+            getContext().getContentResolver().update(
+                    HedgehogContract.AppStateEntry.CONTENT_URI,
+                    currentDailyStepCountValue,
+                    null,
+                    null);
+        }
     }
 
     private void updateWidgets() {
-        StepCountWidgetIntentService.updateWidget(getContext());
+        StepCountWidgetIntentService.updateWidget(todayStepCount);
 
         Context context = getContext();
         Intent dataUpdatedIntent = new Intent(ACTION_DATA_UPDATED)
@@ -294,15 +276,13 @@ public class FitSyncAdapter extends AbstractThreadedSyncAdapter
         if (notificationsEnabled == false) {
             return;
         }
-
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("MM/dd/yyyy  HH:mm");
         cal.set(Calendar.HOUR_OF_DAY, 0);
         cal.set(Calendar.MINUTE, 0);
         cal.set(Calendar.SECOND, 0);
         cal.set(Calendar.MILLISECOND, 0);
 
         Log.d(LOG_TAG, "checking for notification.");
-        if (todayStepCount >= dailyStepGoal && cal.getTimeInMillis() != metGoalNotificationDayTimestamp) {
+        if (todayStepCount >= dailyStepGoal && cal.getTimeInMillis() != goalMetNotificationTimestamp) {
             String notificationTitle = getContext().getString(R.string.goal_met_notification_title);
             String notificationContent =
                     getContext().getString(R.string.goal_met_notification_content_start) + " " +
@@ -310,16 +290,10 @@ public class FitSyncAdapter extends AbstractThreadedSyncAdapter
                             getContext().getString(R.string.goal_met_notification_content_end);
             sendNotification(notificationTitle, notificationContent);
 
-            SharedPreferences.Editor editor = stepDataPrefs.edit();
-            editor.putString(getContext().getString(R.string.pref_today_100_percent_goal_notification_timestamp_key),
-                    Long.toString(cal.getTimeInMillis()));
-            editor.commit();
-
-            metGoalNotificationDayTimestamp = cal.getTimeInMillis();
-            Log.d(LOG_TAG, "metGoalNotificationDayTimestamp is now " + simpleDateFormat.format(metGoalNotificationDayTimestamp));
+            setGoalMetNotificationTimestamp(cal.getTimeInMillis());
         } else if (todayStepCount >= (dailyStepGoal / 2)
-                && cal.getTimeInMillis() != metGoalNotificationDayTimestamp
-                && cal.getTimeInMillis() != halfwayToGoalNotificationDayTimestamp) {
+                && cal.getTimeInMillis() != goalMetNotificationTimestamp
+                && cal.getTimeInMillis() != goalHalfMetNotificationTimestamp) {
             String notificationTitle = getContext().getString(R.string.goal_halfway_met_notification_title);
             String notificationContent =
                     getContext().getString(R.string.goal_halfway_met_notification_content_start) + " " +
@@ -327,15 +301,44 @@ public class FitSyncAdapter extends AbstractThreadedSyncAdapter
                             getContext().getString(R.string.goal_halfway_met_notification_content_end);
             sendNotification(notificationTitle, notificationContent);
 
-            SharedPreferences.Editor editor = stepDataPrefs.edit();
-            editor.putString(getContext().getString(R.string.pref_today_50_percent_goal_notification_timestamp_key),
-                    Long.toString(cal.getTimeInMillis()));
-            editor.commit();
-
-            halfwayToGoalNotificationDayTimestamp = cal.getTimeInMillis();
-            Log.d(LOG_TAG, "halfwayToGoalNotificationDayTimestamp is now " + simpleDateFormat.format(halfwayToGoalNotificationDayTimestamp));
-
+            setGoalHalfMetNotificationTimestamp(cal.getTimeInMillis());
         }
+    }
+
+    private void setGoalMetNotificationTimestamp(long newGoalMetNotificationTimestamp) {
+        Log.d(LOG_TAG, "updating goal met timestamp to " + simpleDateFormat.format(newGoalMetNotificationTimestamp));
+        goalMetNotificationTimestamp = newGoalMetNotificationTimestamp;
+        ContentValues goalMetNotificationTimestampCountValue = new ContentValues();
+        goalMetNotificationTimestampCountValue.put(
+                HedgehogContract.AppStateEntry.COLUMN_GOAL_MET_NOTIFICATION_TIMESTAMP, goalMetNotificationTimestamp);
+
+        // Update goal met timestamp in database.
+        if (goalMetNotificationTimestampCountValue.size() > 0) {
+            getContext().getContentResolver().update(
+                    HedgehogContract.AppStateEntry.CONTENT_URI,
+                    goalMetNotificationTimestampCountValue,
+                    null,
+                    null);
+        }
+        Log.d(LOG_TAG, "goalMetNotificationTimestamp is now " + simpleDateFormat.format(goalMetNotificationTimestamp));
+    }
+
+    private void setGoalHalfMetNotificationTimestamp(long newGoalHalfMetNotificationTimestamp) {
+        Log.d(LOG_TAG, "updating goal half met timestamp to " + simpleDateFormat.format(newGoalHalfMetNotificationTimestamp));
+        goalHalfMetNotificationTimestamp = newGoalHalfMetNotificationTimestamp;
+        ContentValues goalHalfMetNotificationTimestampCountValue = new ContentValues();
+        goalHalfMetNotificationTimestampCountValue.put(
+                HedgehogContract.AppStateEntry.COLUMN_GOAL_HALF_MET_NOTIFICATION_TIMESTAMP, goalHalfMetNotificationTimestamp);
+
+        // Update goal met timestamp in database.
+        if (goalHalfMetNotificationTimestampCountValue.size() > 0) {
+            getContext().getContentResolver().update(
+                    HedgehogContract.AppStateEntry.CONTENT_URI,
+                    goalHalfMetNotificationTimestampCountValue,
+                    null,
+                    null);
+        }
+        Log.d(LOG_TAG, "goalHalfMetNotificationTimestamp is now " + simpleDateFormat.format(goalHalfMetNotificationTimestamp));
     }
 
     private void sendNotification(String title, String content) {
@@ -356,47 +359,46 @@ public class FitSyncAdapter extends AbstractThreadedSyncAdapter
         mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
     }
 
-    @Override
-    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        if (key.equals(getContext().getString(R.string.pref_step_goal_key))) {
-            Log.d(LOG_TAG, "daily step goal shared prefs changed.");
-            dailyStepGoalStr = sharedPreferences.getString(
-                    getContext().getString(R.string.pref_step_goal_key),
-                    getContext().getString(R.string.pref_step_goal_default));
-            try {
-                int newStepGoal = Integer.parseInt(dailyStepGoalStr);
-                if (todayStepCount < (newStepGoal / 2)) {
-                    resetHalfwayGoalNotificationTimestamp();
-                }
-                if (todayStepCount < newStepGoal) {
-                    resetMetGoalNotificationTimestamp();
-                }
-                dailyStepGoal = newStepGoal;
-            } catch (NumberFormatException nfe) {
-                Log.e(LOG_TAG, nfe.getMessage());
+    public void checkForUpdatedDailyStepGoal() {
+        Cursor appSateCursor = getContext().getContentResolver().query(
+                HedgehogContract.AppStateEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                null);
+
+        if (appSateCursor.moveToFirst()) {
+            AppStateDTO appStateDTO = new AppStateDTO(appSateCursor);
+            int currentDailyStepGoal = appStateDTO.getDailyStepGoal();
+            if (currentDailyStepGoal != dailyStepGoal) {
+                updateDailyStepGoal(currentDailyStepGoal);
             }
-            checkForNotification();
         }
     }
 
-    private void resetHalfwayGoalNotificationTimestamp() {
-        SharedPreferences.Editor editor = stepDataPrefs.edit();
-        editor.putString(
-                getContext().getString(R.string.pref_today_50_percent_goal_notification_timestamp_key),
-                getContext().getString(R.string.pref_today_50_percent_goal_notification_timestamp_default));
-        editor.commit();
-
-        halfwayToGoalNotificationDayTimestamp = 0;
+    private void updateDailyStepGoal(int newDailyStepGoal) {
+        if (todayStepCount < (newDailyStepGoal / 2)) {
+            setGoalHalfMetNotificationTimestamp(0);
+        }
+        if (todayStepCount < newDailyStepGoal) {
+            setGoalMetNotificationTimestamp(0);
+        }
+        dailyStepGoal = newDailyStepGoal;
+        checkForNotification();
     }
 
-    private void resetMetGoalNotificationTimestamp() {
-        SharedPreferences.Editor editor = stepDataPrefs.edit();
-        editor.putString(
-                getContext().getString(R.string.pref_today_100_percent_goal_notification_timestamp_key),
-                getContext().getString(R.string.pref_today_100_percent_goal_notification_timestamp_default));
-        editor.commit();
+    public void checkForUpdateNotificationEnabledStatus() {
+        Cursor appSateCursor = getContext().getContentResolver().query(
+                HedgehogContract.AppStateEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                null);
 
-        metGoalNotificationDayTimestamp = 0;
+        if (appSateCursor.moveToFirst()) {
+            AppStateDTO appStateDTO = new AppStateDTO(appSateCursor);
+            notificationsEnabled = appStateDTO.isNotificationsEnabled();
+        }
     }
 
     @Override

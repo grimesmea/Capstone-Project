@@ -20,7 +20,9 @@
 
         <provider
             android:name=".data.HedgehogProvider"
-            android:authorities="grimesmea.gmail.com.pricklefit.app" />
+            android:authorities="grimesmea.gmail.com.pricklefit.app"
+            android:syncable="true"
+            android:exported="false"/>
 
         <!-- SyncAdapter's dummy authentication service -->
         <service android:name=".sync.FitAuthenticatorService">
@@ -45,13 +47,6 @@
                 android:name="android.content.SyncAdapter"
                 android:resource="@xml/sync_adapter" />
         </service>
-
-        <!-- The SyncAdapter dummy provider -->
-        <provider
-            android:name=".data.DummyProvider"
-            android:authorities="grimesmea.gmail.com.pricklefit.dummyprovider"
-            android:label="DummyProvider"
-            android:syncable="true" />
 
         <activity
             android:name=".MainActivity"

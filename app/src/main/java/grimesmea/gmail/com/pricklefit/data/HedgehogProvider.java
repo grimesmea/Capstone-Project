@@ -9,20 +9,21 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.util.Log;
 
+import grimesmea.gmail.com.pricklefit.data.HedgehogContract.AppStateEntry;
 import grimesmea.gmail.com.pricklefit.data.HedgehogContract.HedgehogsEntry;
 
 public class HedgehogProvider extends ContentProvider {
+
 
     static final int HEDGEHOGS = 100;
     static final int HEDGEHOG = 101;
     static final int UNLOCKED_HEDGEHOGS = 200;
     static final int SELECTED_HEDGEHOG = 300;
-
+    static final int CURRENT_APP_STATE = 400;
     // The URI Matcher used by this content provider.
     private static final UriMatcher sUriMatcher = buildUriMatcher();
-
     private static final String hedgehogSelection =
-            HedgehogContract.HedgehogsEntry.TABLE_NAME + "." +
+            HedgehogsEntry.TABLE_NAME + "." +
                     HedgehogsEntry._ID + " = ?";
     private static final String unlockedHedgehogsSelection =
             HedgehogsEntry.TABLE_NAME +
@@ -30,7 +31,7 @@ public class HedgehogProvider extends ContentProvider {
     private static final String selectedHedgehogSelection =
             HedgehogsEntry.TABLE_NAME +
                     "." + HedgehogsEntry.COLUMN_SELECTED_STATUS + " = 1";
-
+    public final String LOG_TAG = HedgehogProvider.class.getSimpleName();
     private HedgehogDbHelper mOpenHelper;
 
     static UriMatcher buildUriMatcher() {
@@ -44,6 +45,8 @@ public class HedgehogProvider extends ContentProvider {
         matcher.addURI(authority, HedgehogContract.PATH_HEDGEHOGS + "/#", HEDGEHOG);
         matcher.addURI(authority, HedgehogContract.PATH_HEDGEHOGS + "/unlockedHedgehogs", UNLOCKED_HEDGEHOGS);
         matcher.addURI(authority, HedgehogContract.PATH_HEDGEHOGS + "/selectedHedgehog", SELECTED_HEDGEHOG);
+        matcher.addURI(authority, HedgehogContract.PATH_APP_STATE, CURRENT_APP_STATE);
+
         return matcher;
     }
 
@@ -66,6 +69,8 @@ public class HedgehogProvider extends ContentProvider {
                 return HedgehogsEntry.CONTENT_TYPE;
             case SELECTED_HEDGEHOG:
                 return HedgehogsEntry.CONTENT_ITEM_TYPE;
+            case CURRENT_APP_STATE:
+                return AppStateEntry.CONTENT_ITEM_TYPE;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -127,6 +132,22 @@ public class HedgehogProvider extends ContentProvider {
                 );
                 break;
             }
+            case CURRENT_APP_STATE: {
+                retCursor = mOpenHelper.getReadableDatabase().query(
+                        AppStateEntry.TABLE_NAME,
+                        projection,
+                        selection,
+                        null,
+                        null,
+                        null,
+                        sortOrder
+                );
+                if (retCursor.getCount() > 1) {
+                    Log.e(LOG_TAG,
+                            "more than 1 entry for current app state found during query.");
+                }
+                break;
+            }
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -142,9 +163,17 @@ public class HedgehogProvider extends ContentProvider {
 
         switch (match) {
             case HEDGEHOGS: {
-                long _id = db.insert(HedgehogContract.HedgehogsEntry.TABLE_NAME, null, values);
+                long _id = db.insert(HedgehogsEntry.TABLE_NAME, null, values);
                 if (_id > 0)
                     returnUri = HedgehogsEntry.buildHedgehogUri(_id);
+                else
+                    throw new android.database.SQLException("Failed to insert row into " + uri);
+                break;
+            }
+            case CURRENT_APP_STATE: {
+                long _id = db.insert(AppStateEntry.TABLE_NAME, null, values);
+                if (_id > 0)
+                    returnUri = AppStateEntry.buildAppStateUri(_id);
                 else
                     throw new android.database.SQLException("Failed to insert row into " + uri);
                 break;
@@ -174,7 +203,7 @@ public class HedgehogProvider extends ContentProvider {
             }
             case HEDGEHOG: {
                 rowsDeleted = db.delete(
-                        HedgehogContract.HedgehogsEntry.TABLE_NAME,
+                        HedgehogsEntry.TABLE_NAME,
                         hedgehogSelection,
                         new String[]{uri.getPathSegments().get(uri.getPathSegments().size() - 1)}
                 );
@@ -184,6 +213,14 @@ public class HedgehogProvider extends ContentProvider {
                 rowsDeleted = db.delete(
                         HedgehogsEntry.TABLE_NAME,
                         unlockedHedgehogsSelection,
+                        selectionArgs
+                );
+                break;
+            }
+            case CURRENT_APP_STATE: {
+                rowsDeleted = db.delete(
+                        AppStateEntry.TABLE_NAME,
+                        selection,
                         selectionArgs
                 );
                 break;
@@ -213,11 +250,9 @@ public class HedgehogProvider extends ContentProvider {
                         selection,
                         selectionArgs);
                 break;
-            default:
-                throw new UnsupportedOperationException("Unknown uri: " + uri);
             case HEDGEHOG: {
                 rowsUpdated = db.update(
-                        HedgehogContract.HedgehogsEntry.TABLE_NAME,
+                        HedgehogsEntry.TABLE_NAME,
                         values,
                         hedgehogSelection,
                         new String[]{uri.getPathSegments().get(uri.getPathSegments().size() - 1)}
@@ -242,6 +277,19 @@ public class HedgehogProvider extends ContentProvider {
                 );
                 break;
             }
+            case CURRENT_APP_STATE:
+                rowsUpdated = db.update(
+                        AppStateEntry.TABLE_NAME,
+                        values,
+                        selection,
+                        selectionArgs);
+                if (rowsUpdated > 1) {
+                    Log.e(LOG_TAG,
+                            "more than 1 entry for current app state found and updated during update.");
+                }
+                break;
+            default:
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
         if (rowsUpdated != 0) {
             getContext().getContentResolver().notifyChange(uri, null);
@@ -253,10 +301,10 @@ public class HedgehogProvider extends ContentProvider {
     public int bulkInsert(Uri uri, ContentValues[] values) {
         final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         final int match = sUriMatcher.match(uri);
+        int returnCount = 0;
         switch (match) {
             case HEDGEHOGS:
                 db.beginTransaction();
-                int returnCount = 0;
                 try {
                     for (ContentValues value : values) {
                         long _id = db.insert(HedgehogsEntry.TABLE_NAME, null, value);

@@ -1,12 +1,16 @@
 package grimesmea.gmail.com.pricklefit;
 
 
+import android.content.ContentValues;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
+import android.util.Log;
+
+import grimesmea.gmail.com.pricklefit.data.HedgehogContract;
 
 /**
  * Displays and manages changes to settings shared preferences.
@@ -14,6 +18,7 @@ import android.preference.PreferenceManager;
 public class SettingsFragment extends PreferenceFragment implements
         Preference.OnPreferenceChangeListener, SharedPreferences.OnSharedPreferenceChangeListener {
 
+    private final String LOG_TAG = SettingsFragment.class.getSimpleName();
 
     public SettingsFragment() {
         // Required empty public constructor
@@ -23,17 +28,17 @@ public class SettingsFragment extends PreferenceFragment implements
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        addPreferencesFromResource(R.xml.settings_prefs);
-
+        addPreferencesFromResource(R.xml.pref_settings);
         Preference stepGoalPref = findPreference(getString(R.string.pref_step_goal_key));
-        Preference notificationsPref = findPreference(getString(R.string.pref_enable_notifications_key));
+        Preference notificationsPref = findPreference(getString(R.string.pref_notifications_enabled_key));
 
         stepGoalPref.setOnPreferenceChangeListener(this);
         notificationsPref.setOnPreferenceChangeListener(this);
 
         setPreferenceSummary(stepGoalPref, PreferenceManager
                 .getDefaultSharedPreferences(stepGoalPref.getContext())
-                .getString(stepGoalPref.getKey(), ""));
+                .getString(stepGoalPref.getKey(),
+                        getResources().getString(R.string.pref_step_goal_default)));
     }
 
     private void setPreferenceSummary(Preference preference, Object value) {
@@ -84,7 +89,49 @@ public class SettingsFragment extends PreferenceFragment implements
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         if (key.equals(getString(R.string.pref_step_goal_key))) {
+            String newDailyStepGoalString = sharedPreferences.getString(getString(R.string.pref_step_goal_key),
+                    getResources().getString(R.string.pref_step_goal_default));
+            Log.d(LOG_TAG, "Updating daily step goal to " + newDailyStepGoalString);
+            int newDailyStepGoal = 0;
 
+            try {
+                newDailyStepGoal = Integer.parseInt(newDailyStepGoalString);
+            } catch (NumberFormatException nfe) {
+                System.out.println("Could not parse " + nfe);
+            }
+
+            ContentValues currentDailyStepGoalValue = new ContentValues();
+            currentDailyStepGoalValue.put(
+                    HedgehogContract.AppStateEntry.COLUMN_DAILY_STEP_GOAL, newDailyStepGoal);
+
+            // Update current daily step count in database.
+            if (currentDailyStepGoalValue.size() > 0) {
+                getActivity().getContentResolver().update(
+                        HedgehogContract.AppStateEntry.CONTENT_URI,
+                        currentDailyStepGoalValue,
+                        null,
+                        null);
+            }
+        }
+
+        if (key.equals(getString(R.string.pref_notifications_enabled_key))) {
+            boolean isNotificationsEnabled = sharedPreferences.getBoolean(getString(R.string.pref_notifications_enabled_key),
+                    getResources().getBoolean(R.bool.pref_notifications_enabled_default));
+            Log.d(LOG_TAG, "Updating notifications enabled status to " + isNotificationsEnabled);
+
+            ContentValues notificationsEnabledValue = new ContentValues();
+            notificationsEnabledValue.put(
+                    HedgehogContract.AppStateEntry.COLUMN_NOTIFICATIONS_ENABLED_STATUS,
+                    isNotificationsEnabled);
+
+            // Update notifications enabled status in database.
+            if (notificationsEnabledValue.size() > 0) {
+                getActivity().getContentResolver().update(
+                        HedgehogContract.AppStateEntry.CONTENT_URI,
+                        notificationsEnabledValue,
+                        null,
+                        null);
+            }
         }
     }
 }

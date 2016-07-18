@@ -1,0 +1,10 @@
+{
+  "app_state": {
+    "daily_step_goal": 10000,
+    "notifications_enabled_status": true,
+    "current_daily_step_total": 0,
+    "hedgehog_state_update_timestamp": 0,
+    "goal_met_notification_timestamp": 0,
+    "goal_half_met_notification_timestamp": 0
+  }
+}

@@ -5,9 +5,7 @@ import android.app.IntentService;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
@@ -31,19 +29,9 @@ public class StepCountWidgetIntentService extends IntentService {
         super("StepCountWidgetIntentService");
     }
 
-    public static void updateWidget(Context context) {
-        Log.d(LOG_TAG, "updateWidget");
-        // Get today's data from the Shared Prefs
-        SharedPreferences stepDataPrefs = context.getSharedPreferences(
-                context.getString(R.string.step_data_prefs), Context.MODE_PRIVATE);
-        todayStepCountStr = stepDataPrefs.getString(
-                context.getString(R.string.pref_today_step_count_key),
-                context.getString(R.string.pref_today_step_count_default));
-        try {
-            todayStepCount = Integer.parseInt(todayStepCountStr);
-        } catch (NumberFormatException nfe) {
-            Log.e(LOG_TAG, nfe.getMessage());
-        }
+    public static void updateWidget(int currentDailyStepCount) {
+        todayStepCount = currentDailyStepCount;
+
     }
 
     @Override

@@ -8,6 +8,7 @@ import android.test.AndroidTestCase;
 import java.util.HashSet;
 import java.util.Set;
 
+import grimesmea.gmail.com.pricklefit.data.HedgehogContract.AppStateEntry;
 import grimesmea.gmail.com.pricklefit.data.HedgehogContract.HedgehogsEntry;
 
 public class TestDb extends AndroidTestCase {
@@ -20,6 +21,7 @@ public class TestDb extends AndroidTestCase {
     public void testCreateDb() throws Throwable {
         final Set<String> tableNameHashSet = new HashSet<String>();
         tableNameHashSet.add(HedgehogsEntry.TABLE_NAME);
+        tableNameHashSet.add(AppStateEntry.TABLE_NAME);
 
         SQLiteDatabase db = new HedgehogDbHelper(
                 this.mContext).getWritableDatabase();
@@ -32,7 +34,7 @@ public class TestDb extends AndroidTestCase {
         do {
             tableNameHashSet.remove(cursor.getString(0));
         } while (cursor.moveToNext());
-        assertTrue("Error: Database was created without the hedgehogs entry tables",
+        assertTrue("Error: Database was created without both the hedgehogs and app state entry tables",
                 tableNameHashSet.isEmpty());
 
         cursor.close();
@@ -67,6 +69,37 @@ public class TestDb extends AndroidTestCase {
         } while (cursor.moveToNext());
         assertTrue("Error: The hedgehogs table does not contain all of the required columns",
                 hedgehogsColumnHashSet.isEmpty());
+
+        cursor.close();
+        db.close();
+    }
+
+    public void testCreateAppStateTable() throws Throwable {
+        SQLiteDatabase db = new HedgehogDbHelper(
+                this.mContext).getWritableDatabase();
+        assertEquals(true, db.isOpen());
+
+        Cursor cursor = db.rawQuery("PRAGMA table_info(" + AppStateEntry.TABLE_NAME + ")",
+                null);
+        assertTrue("Error: Unable to query the database for app state table information",
+                cursor.moveToFirst());
+
+        final Set<String> appStateColumnHashSet = new HashSet<String>();
+        appStateColumnHashSet.add(AppStateEntry._ID);
+        appStateColumnHashSet.add(AppStateEntry.COLUMN_DAILY_STEP_GOAL);
+        appStateColumnHashSet.add(AppStateEntry.COLUMN_NOTIFICATIONS_ENABLED_STATUS);
+        appStateColumnHashSet.add(AppStateEntry.COLUMN_CURRENT_DAILY_STEP_TOTAL);
+        appStateColumnHashSet.add(AppStateEntry.COLUMN_HEDGEHOG_STATE_UPDATE_TIMESTAMP);
+        appStateColumnHashSet.add(AppStateEntry.COLUMN_GOAL_MET_NOTIFICATION_TIMESTAMP);
+        appStateColumnHashSet.add(AppStateEntry.COLUMN_GOAL_HALF_MET_NOTIFICATION_TIMESTAMP);
+
+        int columnNameIndex = cursor.getColumnIndex("name");
+        do {
+            String columnName = cursor.getString(columnNameIndex);
+            appStateColumnHashSet.remove(columnName);
+        } while (cursor.moveToNext());
+        assertTrue("Error: The app state table does not contain all of the required columns",
+                appStateColumnHashSet.isEmpty());
 
         cursor.close();
         db.close();
