@@ -294,11 +294,11 @@ public class FitSyncAdapter extends AbstractThreadedSyncAdapter
         } else if (todayStepCount >= (dailyStepGoal / 2)
                 && cal.getTimeInMillis() != goalMetNotificationTimestamp
                 && cal.getTimeInMillis() != goalHalfMetNotificationTimestamp) {
-            String notificationTitle = getContext().getString(R.string.goal_halfway_met_notification_title);
+            String notificationTitle = getContext().getString(R.string.goal_half_met_notification_title);
             String notificationContent =
-                    getContext().getString(R.string.goal_halfway_met_notification_content_start) + " " +
+                    getContext().getString(R.string.goal_half_met_notification_content_start) + " " +
                             String.format("%,d", dailyStepGoal) + " " +
-                            getContext().getString(R.string.goal_halfway_met_notification_content_end);
+                            getContext().getString(R.string.goal_half_met_notification_content_end);
             sendNotification(notificationTitle, notificationContent);
 
             setGoalHalfMetNotificationTimestamp(cal.getTimeInMillis());

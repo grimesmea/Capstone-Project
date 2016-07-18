@@ -15,7 +15,7 @@
     <CheckBoxPreference
         android:defaultValue="@bool/pref_notifications_enabled_default"
         android:key="@string/pref_notifications_enabled_key"
-        android:summaryOff="@string/pref_enable_notifications_false"
-        android:summaryOn="@string/pref_enable_notifications_true"
-        android:title="@string/pref_enable_notifications_label" />
+        android:summaryOff="@string/pref_notifications_enabled_false"
+        android:summaryOn="@string/pref_notifications_enabled_true"
+        android:title="@string/pref_notifications_enabled_label" />
 </PreferenceScreen>

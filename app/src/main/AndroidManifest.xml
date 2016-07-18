@@ -21,8 +21,8 @@
         <provider
             android:name=".data.HedgehogProvider"
             android:authorities="grimesmea.gmail.com.pricklefit.app"
-            android:syncable="true"
-            android:exported="false"/>
+            android:exported="false"
+            android:syncable="true" />
 
         <!-- SyncAdapter's dummy authentication service -->
         <service android:name=".sync.FitAuthenticatorService">

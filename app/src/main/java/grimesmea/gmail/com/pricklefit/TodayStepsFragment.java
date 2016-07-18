@@ -291,7 +291,7 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
                     @Override
                     public void onResult(Status status) {
                         if (status.isSuccess()) {
-                            Log.e(LOG_TAG, "SensorApi successfully added");
+                            Log.d(LOG_TAG, "Sensors Api successfully added");
                         }
                     }
                 });
@@ -299,6 +299,7 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
 
     @Override
     public void onDataPoint(DataPoint dataPoint) {
+        Log.d(LOG_TAG, "SensorsApi onDataPoint");
         for (final Field field : dataPoint.getDataType().getFields()) {
             final Value value = dataPoint.getValue(field);
 
@@ -393,6 +394,7 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
                 }
             case APP_STATE_LOADER:
                 if (data.moveToFirst()) {
+                    Log.d(LOG_TAG, "APP_STATE_LOADER onLoadFinished");
                     AppStateDTO appStateDTO = new AppStateDTO(data);
                     todayStepCount = appStateDTO.getCurrentDailyStepCount();
                     if (todayStepCount != 0) {
@@ -443,7 +445,7 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
     }
 
     private void updateNotificationsEnablePref() {
-        Log.d(LOG_TAG, "Updating notifications enabled pref");
+        Log.d(LOG_TAG, "Updating notifications enabled pref to " + isNotificationsEnabled);
         sharedPreferences.edit().putBoolean(getString(R.string.pref_notifications_enabled_key),
                 isNotificationsEnabled)
                 .apply();
