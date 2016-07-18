@@ -2,9 +2,11 @@ package grimesmea.gmail.com.pricklefit;
 
 import android.app.Activity;
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -210,6 +212,13 @@ public class Hedgehog implements Parcelable {
                 null,
                 null
         );
+
+        Context context = activity;
+        CharSequence text = name + " is now unlocked!";
+        int duration = Toast.LENGTH_LONG;
+
+        Toast toast = Toast.makeText(context, text, duration);
+        toast.show();
     }
 
     public int getId() {
