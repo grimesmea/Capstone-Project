@@ -184,6 +184,7 @@ public class FitSyncAdapter extends AbstractThreadedSyncAdapter
 
     public static void initializeSyncAdapter(Context context) {
         getSyncAccount(context);
+        syncImmediately(context);
     }
 
     @Override
