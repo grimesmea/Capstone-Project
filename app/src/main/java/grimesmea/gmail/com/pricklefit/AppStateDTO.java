@@ -68,13 +68,17 @@ public class AppStateDTO {
         ContentValues appStateValues = new ContentValues();
 
         appStateValues.put(HedgehogContract.AppStateEntry.COLUMN_DAILY_STEP_GOAL, dailyStepGoal);
-        appStateValues.put(HedgehogContract.AppStateEntry.COLUMN_NOTIFICATIONS_ENABLED_STATUS, notificationsEnabled);
+        appStateValues.put(HedgehogContract.AppStateEntry.COLUMN_NOTIFICATIONS_ENABLED_STATUS, getBooleanIntValue(notificationsEnabled));
         appStateValues.put(HedgehogContract.AppStateEntry.COLUMN_CURRENT_DAILY_STEP_TOTAL, currentDailyStepCount);
         appStateValues.put(HedgehogContract.AppStateEntry.COLUMN_HEDGEHOG_STATE_UPDATE_TIMESTAMP, hedgehogStateUpdateTimestamp);
         appStateValues.put(HedgehogContract.AppStateEntry.COLUMN_GOAL_MET_NOTIFICATION_TIMESTAMP, goalMetNotificationTimestamp);
         appStateValues.put(HedgehogContract.AppStateEntry.COLUMN_GOAL_HALF_MET_NOTIFICATION_TIMESTAMP, goalHalfMetNotificationTimestamp);
 
         return appStateValues;
+    }
+
+    private static int getBooleanIntValue(boolean bool) {
+        return bool == true ? 1 : 0;
     }
 
     public int getDailyStepGoal() {
