@@ -238,8 +238,10 @@ public class FitSyncAdapter extends AbstractThreadedSyncAdapter
                             : totalSet.getDataPoints().get(0).getValue(Field.FIELD_STEPS).asInt();
                     Log.d(LOG_TAG, "Daily step total retrieved from history API. Today's steps = "
                             + newTodayStepCount);
-                    todayStepCount = newTodayStepCount;
-                    updateTodayStepCount();
+                    if (newTodayStepCount != todayStepCount) {
+                        todayStepCount = newTodayStepCount;
+                        updateTodayStepCount();
+                    }
                     checkForNotification();
                     updateWidgets();
                 }
