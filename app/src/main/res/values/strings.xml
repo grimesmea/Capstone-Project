@@ -57,4 +57,7 @@
     <!-- Widget -->
     <string name="widget_description">Steps</string>
     <string name="widget_step_count_placeholder" translatable="false">...</string>
+
+    <!-- Shared Element Transition Names -->
+    <string name="hedgehog_image_transition_name">hedgehog_image_transition</string>
 </resources>

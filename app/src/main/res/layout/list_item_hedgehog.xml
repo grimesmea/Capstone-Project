@@ -33,11 +33,12 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scaleType="fitCenter"
-            android:src="@drawable/hedgie_1" />
+            android:src="@drawable/hedgie_1"
+            android:transitionName="@string/hedgehog_image_transition_name" />
     </RelativeLayout>
 
     <RelativeLayout
-        android:id="@+id/hedgie_hearts"
+        android:id="@+id/hearts_container"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"

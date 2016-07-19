@@ -16,14 +16,24 @@
         android:paddingRight="@dimen/activity_horizontal_margin"
         android:paddingTop="@dimen/activity_vertical_margin">
 
-        <ImageView
-            android:id="@+id/hedgehog_image"
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="3"
-            android:adjustViewBounds="true"
-            android:background="@drawable/hedgehog_frame"
-            android:scaleType="fitCenter" />
+            android:layout_weight="3">
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/hedgehog_frame" />
+
+            <ImageView
+                android:id="@+id/hedgehog_image"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:adjustViewBounds="true"
+                android:scaleType="fitCenter"
+                android:transitionName="@string/hedgehog_image_transition_name" />
+        </RelativeLayout>
 
         <LinearLayout
             android:layout_width="match_parent"

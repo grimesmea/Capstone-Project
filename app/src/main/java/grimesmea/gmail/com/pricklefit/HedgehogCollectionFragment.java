@@ -62,12 +62,13 @@ public class HedgehogCollectionFragment extends Fragment implements LoaderManage
             @Override
             public void onClick(int hedgehogId, HedgehogCollectionAdapter.HedgehogCollectionAdapterViewHolder viewHolder) {
                 ((Callback) getActivity())
-                        .onItemSelected(HedgehogContract.HedgehogsEntry.buildHedgehogUri(
-                                hedgehogId));
+                        .onItemSelected(
+                                HedgehogContract.HedgehogsEntry.buildHedgehogUri(hedgehogId),
+                                viewHolder
+                        );
             }
-        },
-                emptyView,
-                isSingleChoiceMode);
+        }, emptyView, isSingleChoiceMode);
+
         mRecyclerView.setAdapter(mHedgehogCollectionAdapter);
 
         SimpleDividerItemDecoration dividerItemDecoration = new SimpleDividerItemDecoration(getContext());
@@ -172,6 +173,6 @@ public class HedgehogCollectionFragment extends Fragment implements LoaderManage
         /**
          * DetailFragmentCallback for when an item has been selected.
          */
-        void onItemSelected(Uri hedgehogUri);
+        void onItemSelected(Uri hedgehogUri, HedgehogCollectionAdapter.HedgehogCollectionAdapterViewHolder viewHolder);
     }
 }

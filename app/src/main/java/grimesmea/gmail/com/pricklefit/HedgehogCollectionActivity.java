@@ -3,10 +3,15 @@ package grimesmea.gmail.com.pricklefit;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.ActivityOptionsCompat;
+import android.support.v4.util.Pair;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.View;
 
-public class HedgehogCollectionActivity extends AppCompatActivity implements HedgehogCollectionFragment.Callback {
+public class HedgehogCollectionActivity extends AppCompatActivity
+        implements HedgehogCollectionFragment.Callback {
 
     private static final String DETAILFRAGMENT_TAG = "DFTAG";
     private final String LOG_TAG = HedgehogCollectionActivity.class.getSimpleName();
@@ -43,8 +48,11 @@ public class HedgehogCollectionActivity extends AppCompatActivity implements Hed
         }
     }
 
+
     @Override
-    public void onItemSelected(Uri contentUri) {
+    public void onItemSelected(
+            Uri contentUri,
+            HedgehogCollectionAdapter.HedgehogCollectionAdapterViewHolder viewHolder) {
         if (mTwoPane) {
             // In two-pane mode, show the detail view in this activity by
             // adding or replacing the detail fragment using a
@@ -61,7 +69,14 @@ public class HedgehogCollectionActivity extends AppCompatActivity implements Hed
         } else {
             Intent intent = new Intent(this, HedgehogDetailActivity.class)
                     .setData(contentUri);
-            startActivity(intent);
+            Bundle bundle = ActivityOptionsCompat
+                    .makeSceneTransitionAnimation(
+                            this,
+                            new Pair<View, String>(viewHolder.hedgehogImageView,
+                                    getString(R.string.hedgehog_image_transition_name))
+                    )
+                    .toBundle();
+            ActivityCompat.startActivity(this, intent, bundle);
         }
     }
 }
