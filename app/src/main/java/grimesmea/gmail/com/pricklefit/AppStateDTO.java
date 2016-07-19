@@ -64,6 +64,10 @@ public class AppStateDTO {
         return i == 1 ? true : false;
     }
 
+    private static int getBooleanIntValue(boolean bool) {
+        return bool == true ? 1 : 0;
+    }
+
     public ContentValues createContentValues() {
         ContentValues appStateValues = new ContentValues();
 
@@ -75,10 +79,6 @@ public class AppStateDTO {
         appStateValues.put(HedgehogContract.AppStateEntry.COLUMN_GOAL_HALF_MET_NOTIFICATION_TIMESTAMP, goalHalfMetNotificationTimestamp);
 
         return appStateValues;
-    }
-
-    private static int getBooleanIntValue(boolean bool) {
-        return bool == true ? 1 : 0;
     }
 
     public int getDailyStepGoal() {

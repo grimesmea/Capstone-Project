@@ -11,7 +11,7 @@ import grimesmea.gmail.com.pricklefit.sync.FitSyncAdapter;
 
 /**
  * Provider for a horizontally expandable widget showing today's step count.
- * <p/>
+ * <p>
  * Delegates widget updating to {@link StepCountWidgetIntentService} to ensure that
  * data retrieval is done on a background thread.
  */
