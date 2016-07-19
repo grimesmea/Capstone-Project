@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 
 /**
  * {@link HedgehogCollectionAdapter} exposes a list of hedgehogs from a
@@ -153,6 +154,7 @@ public class HedgehogCollectionAdapter extends RecyclerView.Adapter<HedgehogColl
         public ImageView heartImage3;
         public ImageView heartImage4;
         public ImageView heartImage5;
+        public RelativeLayout heartsContainer;
         public ImageView[] heartImageViews;
 
         public HedgehogCollectionAdapterViewHolder(View view) {
@@ -165,6 +167,7 @@ public class HedgehogCollectionAdapter extends RecyclerView.Adapter<HedgehogColl
             heartImage3 = (ImageView) view.findViewById(R.id.heart_3);
             heartImage4 = (ImageView) view.findViewById(R.id.heart_4);
             heartImage5 = (ImageView) view.findViewById(R.id.heart_5);
+            heartsContainer = (RelativeLayout) view.findViewById(R.id.hearts_container);
 
             heartImageViews = new ImageView[]{
                     heartImage1, heartImage2, heartImage3, heartImage4, heartImage5

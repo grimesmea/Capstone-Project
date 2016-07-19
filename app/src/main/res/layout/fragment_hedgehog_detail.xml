@@ -22,6 +22,7 @@
             android:layout_weight="3">
 
             <View
+                android:id="@+id/hedgehog_frame"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="@drawable/hedgehog_frame" />
@@ -36,6 +37,7 @@
         </RelativeLayout>
 
         <LinearLayout
+            android:id="@+id/hedgehog_hearts_and_description_container"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="2"
