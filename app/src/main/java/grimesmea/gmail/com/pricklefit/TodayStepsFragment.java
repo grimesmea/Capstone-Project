@@ -11,7 +11,6 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
@@ -28,6 +27,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
@@ -251,13 +251,16 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
                 })
                 .enableAutoManage(getActivity(), 0, new GoogleApiClient.OnConnectionFailedListener() {
                     @Override
-                    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+                    public void onConnectionFailed(ConnectionResult connectionResult) {
                         Log.i(LOG_TAG, "Google Play services connection failed. Cause: " +
                                 connectionResult.toString());
+                        GoogleApiAvailability googleApiAvailability =
+                                GoogleApiAvailability.getInstance();
                         Snackbar snackbar = Snackbar.make(
                                 contentLinearLayout,
                                 "Exception while connecting to Google Play services: " +
-                                        connectionResult.getErrorMessage(),
+                                        googleApiAvailability
+                                                .getErrorString(connectionResult.getErrorCode()),
                                 Snackbar.LENGTH_INDEFINITE);
                         View view = snackbar.getView();
                         TextView textView = (TextView) view.findViewById(android.support.design.R.id.snackbar_text);

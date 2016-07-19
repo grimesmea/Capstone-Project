@@ -5,7 +5,9 @@ import android.content.IntentSender;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -15,6 +17,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
@@ -136,12 +139,27 @@ public class WeekStatsFragment extends Fragment {
                 .enableAutoManage(getActivity(), 0, new GoogleApiClient.OnConnectionFailedListener() {
                     @Override
                     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+                        Log.i(LOG_TAG, "Google Play services connection failed. Cause: " +
+                                connectionResult.toString());
+                        GoogleApiAvailability googleApiAvailability =
+                                GoogleApiAvailability.getInstance();
+                        Snackbar snackbar = Snackbar.make(
+                                mRecyclerView,
+                                "Exception while connecting to Google Play services: " +
+                                        googleApiAvailability
+                                                .getErrorString(connectionResult.getErrorCode()),
+                                Snackbar.LENGTH_INDEFINITE);
+                        View view = snackbar.getView();
+                        TextView textView = (TextView) view.findViewById(android.support.design.R.id.snackbar_text);
+                        textView.setTextColor(ContextCompat.getColor(getContext(), R.color.light_grey));
+                        snackbar.show();
+
                         if (!authInProgress) {
                             try {
                                 authInProgress = true;
                                 connectionResult.startResolutionForResult(getActivity(), REQUEST_OAUTH);
                             } catch (IntentSender.SendIntentException e) {
-                                Log.e(LOG_TAG, e.toString());
+                                Log.e(LOG_TAG, e.getMessage());
                             }
                         } else {
                             Log.e(LOG_TAG, "authInProgress");
