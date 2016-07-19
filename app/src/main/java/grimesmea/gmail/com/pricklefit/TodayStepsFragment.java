@@ -163,7 +163,7 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_todays_steps, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_today_steps, container, false);
         contentLinearLayout = (LinearLayout) rootView.findViewById(R.id.main_fragment_content);
         hedgehogImageView = (ImageView) rootView.findViewById(R.id.hedgehog_image);
         todayStepsTextView = (TextView) rootView.findViewById(R.id.today_step_count);

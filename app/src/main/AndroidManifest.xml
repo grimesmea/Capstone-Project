@@ -62,7 +62,7 @@
             android:name=".StatsActivity"
             android:label="@string/title_activity_weeks_stats"
             android:parentActivityName=".MainActivity"
-            android:theme="@style/AppTheme">
+            android:theme="@style/AppTheme.Main">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />
@@ -71,7 +71,7 @@
             android:name=".HedgehogCollectionActivity"
             android:label="@string/title_activity_hedgehog_collection"
             android:parentActivityName=".MainActivity"
-            android:theme="@style/AppTheme">
+            android:theme="@style/AppTheme.Collection">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />

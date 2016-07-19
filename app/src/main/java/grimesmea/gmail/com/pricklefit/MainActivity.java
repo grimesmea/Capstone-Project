@@ -3,6 +3,8 @@ package grimesmea.gmail.com.pricklefit;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -18,7 +20,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -51,13 +52,22 @@ public class MainActivity extends AppCompatActivity
 
         if (id == R.id.nav_weeks_stats) {
             Intent intent = new Intent(this, StatsActivity.class);
-            startActivity(intent);
+            Bundle bundle = ActivityOptionsCompat
+                    .makeSceneTransitionAnimation(this)
+                    .toBundle();
+            ActivityCompat.startActivity(this, intent, bundle);
         } else if (id == R.id.nav_hedgie_collection) {
             Intent intent = new Intent(this, HedgehogCollectionActivity.class);
-            startActivity(intent);
+            Bundle bundle = ActivityOptionsCompat
+                    .makeSceneTransitionAnimation(this)
+                    .toBundle();
+            ActivityCompat.startActivity(this, intent, bundle);
         } else if (id == R.id.nav_settings) {
             Intent intent = new Intent(this, SettingsActivity.class);
-            startActivity(intent);
+            Bundle bundle = ActivityOptionsCompat
+                    .makeSceneTransitionAnimation(this)
+                    .toBundle();
+            ActivityCompat.startActivity(this, intent, bundle);
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);

@@ -12,5 +12,7 @@
 
     <style name="AppTheme.Main" parent="@style/AppTheme" />
 
+    <style name="AppTheme.Collection" parent="@style/AppTheme" />
+
     <style name="AppTheme.Detail" parent="@style/AppTheme" />
 </resources>
