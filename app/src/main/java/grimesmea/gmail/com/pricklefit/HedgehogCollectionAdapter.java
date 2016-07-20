@@ -83,11 +83,28 @@ public class HedgehogCollectionAdapter extends RecyclerView.Adapter<HedgehogColl
                     viewHolder.heartImageViews[i].setImageResource(R.drawable.heart_outline);
                 }
             }
+            viewHolder.heartsContainer.setContentDescription(
+                    mContext.getString(R.string.hedgehog_hearts_content_description)
+                            + mContext.getString(R.string.unlocked_hedgehog_heart_count_content_description)
+                            + hedgehog.getHappinessLevel() + " out of " + 5);
+            if (hedgehog.getIsSelected()) {
+                viewHolder.hedgehogImageView.setContentDescription(mContext.getString(R.string.selected_hedgehog_image_content_description));
+            } else {
+                viewHolder.hedgehogImageView.setContentDescription(mContext.getString(R.string.unlocked_hedgehog_image_content_description));
+            }
+
+
         } else {
-            hedgehogImageResource = mContext.getResources().getIdentifier(hedgehog.getSilhouetteImageName(), "drawable", mContext.getPackageName());
+            hedgehogImageResource = mContext.getResources()
+                    .getIdentifier(hedgehog.getSilhouetteImageName(), "drawable", mContext.getPackageName());
             for (int i = 0; i < 5; i++) {
                 viewHolder.heartImageViews[i].setImageResource(R.drawable.heart_filled_grey);
             }
+            viewHolder.heartsContainer.setContentDescription(
+                    mContext.getString(R.string.hedgehog_hearts_content_description)
+                            + mContext.getString(R.string.locked_hedgehog_heart_count_content_description));
+
+            viewHolder.hedgehogImageView.setContentDescription(mContext.getString(R.string.locked_hedgehog_image_content_description));
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {

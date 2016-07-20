@@ -37,6 +37,12 @@
     <!-- Hedgehog Collection Activity -->
     <string name="title_activity_hedgehog_collection">Hedgie Collection</string>
     <string name="empty_hedgehog_collection_list">Your hedgehog have gone missing. Please restart the app to try to find them.</string>
+    <string name="hedgehog_hearts_content_description">Hearts indicating the hedgehog\'s happiness level</string>
+    <string name="unlocked_hedgehog_heart_count_content_description">Current happiness level: </string>
+    <string name="selected_hedgehog_image_content_description">Image of selected hedgehog</string>
+    <string name="unlocked_hedgehog_image_content_description">Image of hedgehog</string>
+    <string name="locked_hedgehog_image_content_description">Silhouette image of locked hedgehog</string>
+    <string name="locked_hedgehog_heart_count_content_description">Happiness level not available until hedgehog is unlocked</string>
 
     <!-- Hedgehog Detail Fragment -->
     <string name="action_set_active">Set As Home Screen</string>

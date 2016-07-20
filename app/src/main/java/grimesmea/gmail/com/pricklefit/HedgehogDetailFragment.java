@@ -12,10 +12,12 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import grimesmea.gmail.com.pricklefit.data.HedgehogContract.HedgehogsEntry;
@@ -33,6 +35,7 @@ public class HedgehogDetailFragment extends Fragment implements LoaderManager.Lo
     private Uri mUri;
 
     private Hedgehog hedgehog;
+    private String hedgehogName;
     private ImageView hedgehogImageView;
     private TextView hedgehogDescriptionView;
     private ImageView heartImage1;
@@ -40,6 +43,7 @@ public class HedgehogDetailFragment extends Fragment implements LoaderManager.Lo
     private ImageView heartImage3;
     private ImageView heartImage4;
     private ImageView heartImage5;
+    private RelativeLayout heartsContainer;
     private ImageView[] heartImageViews;
 
     private FloatingActionButton selectionFab;
@@ -79,6 +83,7 @@ public class HedgehogDetailFragment extends Fragment implements LoaderManager.Lo
         heartImage3 = (ImageView) rootView.findViewById(R.id.heart_3);
         heartImage4 = (ImageView) rootView.findViewById(R.id.heart_4);
         heartImage5 = (ImageView) rootView.findViewById(R.id.heart_5);
+        heartsContainer = (RelativeLayout) rootView.findViewById(R.id.hearts_container);
         heartImageViews = new ImageView[]{
                 heartImage1, heartImage2, heartImage3, heartImage4, heartImage5
         };
@@ -114,7 +119,9 @@ public class HedgehogDetailFragment extends Fragment implements LoaderManager.Lo
         Drawable hedgehogDrawable;
 
         if (hedgehog.getIsUnlocked()) {
-            hedgehogImageResource = getContext().getResources().getIdentifier(hedgehog.getImageName(), "drawable", getContext().getPackageName());
+            hedgehogName = hedgehog.getImageName();
+            Log.d(LOG_TAG, "hedgehogName = " + hedgehogName);
+            hedgehogImageResource = getResources().getIdentifier(hedgehogName, "drawable", getContext().getPackageName());
             hedgehogDescription = hedgehog.getDescription();
             for (int i = 0; i < 5; i++) {
                 if (i < hedgehog.getHappinessLevel()) {
@@ -123,16 +130,31 @@ public class HedgehogDetailFragment extends Fragment implements LoaderManager.Lo
                     heartImageViews[i].setImageResource(R.drawable.heart_outline);
                 }
             }
+            heartsContainer.setContentDescription(
+                    getString(R.string.hedgehog_hearts_content_description)
+                            + getString(R.string.unlocked_hedgehog_heart_count_content_description)
+                            + hedgehog.getHappinessLevel() + " out of " + 5);
 
             if (!hedgehog.getIsSelected()) {
                 selectionFab.setVisibility(View.VISIBLE);
+                hedgehogImageView.setContentDescription(
+                        getString(R.string.selected_hedgehog_image_content_description)
+                                + hedgehogName);
+            } else {
+                hedgehogImageView.setContentDescription(
+                        getString(R.string.unlocked_hedgehog_image_content_description)
+                                + hedgehogName);
             }
         } else {
-            hedgehogImageResource = getContext().getResources().getIdentifier(hedgehog.getSilhouetteImageName(), "drawable", getContext().getPackageName());
+            hedgehogImageResource = getResources().getIdentifier(hedgehog.getSilhouetteImageName(), "drawable", getContext().getPackageName());
             hedgehogDescription = getString(R.string.locked_hedgehog_description_placeholder);
             for (int i = 0; i < 5; i++) {
                 heartImageViews[i].setImageResource(R.drawable.heart_filled_grey);
             }
+            heartsContainer.setContentDescription(
+                    getString(R.string.hedgehog_hearts_content_description)
+                            + getString(R.string.locked_hedgehog_heart_count_content_description));
+            hedgehogImageView.setContentDescription(getString(R.string.locked_hedgehog_image_content_description));
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
