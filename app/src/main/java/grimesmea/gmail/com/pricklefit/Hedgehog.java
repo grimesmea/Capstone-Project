@@ -192,7 +192,7 @@ public class Hedgehog implements Parcelable {
         }
 
         for (DailyStepsDTO dailySteps : dailyStepTotals) {
-            if (dailyStepGoal / 2 * fitnessLevel >= dailySteps.getSteps()) {
+            if (dailySteps.getSteps() >= (dailyStepGoal / 2 * fitnessLevel)) {
                 unlockHedgehog(activity);
                 return;
             }
