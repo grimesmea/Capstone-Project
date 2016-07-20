@@ -87,6 +87,7 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
     static final int COL_HEDGEHOG_STATE_UPDATE_TIMESTAMP = 4;
     static final int COL_GOAL_MET_NOTIFICATION_TIMESTAMP = 5;
     static final int COL_GOAL_HALF_MET_NOTIFICATION_TIMESTAMP = 6;
+
     private static final int SELECTED_HEDGEHOG_LOADER = 100;
     private static final int APP_STATE_LOADER = 200;
     private static final int REQUEST_OAUTH = 1;
@@ -107,7 +108,7 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
     private boolean isNotificationsEnabled;
     private boolean needsToUpdateHedgehogState = false;
     private long todayTimeStamp;
-    private LinearLayout contentLinearLayout;
+    private LinearLayout stepCountContainer;
     private ImageView hedgehogImageView;
     private TextView todayStepsTextView;
     private TextView dailyStepGoalTextView;
@@ -121,6 +122,10 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (savedInstanceState != null) {
+            authInProgress = savedInstanceState.getBoolean(AUTH_PENDING);
+            todayStepCount = savedInstanceState.getInt(TODAY_STEP_TOTAL);
+        }
 
         if (!getActivity().getContentResolver().query(
                 HedgehogsEntry.CONTENT_URI,
@@ -142,11 +147,6 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
             fetchAppState();
         }
 
-        if (savedInstanceState != null) {
-            authInProgress = savedInstanceState.getBoolean(AUTH_PENDING);
-            todayStepCount = savedInstanceState.getInt(TODAY_STEP_TOTAL);
-        }
-
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
 
         buildGoogleFitApiClient();
@@ -164,9 +164,14 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_today_steps, container, false);
-        contentLinearLayout = (LinearLayout) rootView.findViewById(R.id.main_fragment_content);
-        hedgehogImageView = (ImageView) rootView.findViewById(R.id.hedgehog_image);
         todayStepsTextView = (TextView) rootView.findViewById(R.id.today_step_count);
+        if (todayStepCount >= 0) {
+            Log.d(LOG_TAG, "onCreateView todayStepCount = " + todayStepCount);
+            updateStepCountTextView();
+        }
+
+        stepCountContainer = (LinearLayout) rootView.findViewById(R.id.step_count_container);
+        hedgehogImageView = (ImageView) rootView.findViewById(R.id.hedgehog_image);
         dailyStepGoalTextView = (TextView) rootView.findViewById(R.id.today_step_goal);
 
         getLoaderManager().initLoader(SELECTED_HEDGEHOG_LOADER, null, this);
@@ -176,6 +181,7 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
     }
 
     private void updateStepCountTextView() {
+        Log.d(LOG_TAG, "updateStepCountTextView step count = " + todayStepCount);
         todayStepsTextView.setText(String.format("%,d", todayStepCount));
     }
 
@@ -256,11 +262,12 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
                                 connectionResult.toString());
                         GoogleApiAvailability googleApiAvailability =
                                 GoogleApiAvailability.getInstance();
+                        String googleApiErrorMessage = googleApiAvailability
+                                .getErrorString(connectionResult.getErrorCode());
                         Snackbar snackbar = Snackbar.make(
-                                contentLinearLayout,
+                                stepCountContainer,
                                 "Exception while connecting to Google Play services: " +
-                                        googleApiAvailability
-                                                .getErrorString(connectionResult.getErrorCode()),
+                                        googleApiErrorMessage,
                                 Snackbar.LENGTH_INDEFINITE);
                         View view = snackbar.getView();
                         TextView textView = (TextView) view.findViewById(android.support.design.R.id.snackbar_text);
@@ -374,6 +381,7 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        Log.d(LOG_TAG, "loader.getId() = " + loader.getId());
         switch (loader.getId()) {
             case SELECTED_HEDGEHOG_LOADER:
                 if (data.moveToFirst()) {
@@ -395,14 +403,14 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
                         }
                     } while (data.moveToNext());
                 }
+                break;
             case APP_STATE_LOADER:
                 if (data.moveToFirst()) {
-                    Log.d(LOG_TAG, "APP_STATE_LOADER onLoadFinished");
                     AppStateDTO appStateDTO = new AppStateDTO(data);
+
                     todayStepCount = appStateDTO.getCurrentDailyStepCount();
-                    if (todayStepCount != 0) {
-                        updateStepCountTextView();
-                    }
+                    Log.d(LOG_TAG, "onLoadFinished, updating step count view to " + todayStepCount);
+                    updateStepCountTextView();
 
                     dailyStepGoal = appStateDTO.getDailyStepGoal();
                     if (dailyStepGoal != 0) {
@@ -436,6 +444,7 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
                         Log.d(LOG_TAG, "HedgehogStateUpdateTimestamp in Content Provider is now " + simpleDateFormat.format(todayTimeStamp));
                     }
                 }
+                break;
             default:
                 return;
         }
@@ -560,8 +569,9 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
+        Log.d(LOG_TAG, "Saving instance state");
         outState.putBoolean(AUTH_PENDING, authInProgress);
         outState.putInt(TODAY_STEP_TOTAL, todayStepCount);
+        super.onSaveInstanceState(outState);
     }
 }

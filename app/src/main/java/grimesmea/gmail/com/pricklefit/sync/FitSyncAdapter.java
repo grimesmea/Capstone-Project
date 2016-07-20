@@ -238,10 +238,8 @@ public class FitSyncAdapter extends AbstractThreadedSyncAdapter
                             : totalSet.getDataPoints().get(0).getValue(Field.FIELD_STEPS).asInt();
                     Log.d(LOG_TAG, "Daily step total retrieved from history API. Today's steps = "
                             + newTodayStepCount);
-                    if (newTodayStepCount != todayStepCount) {
-                        todayStepCount = newTodayStepCount;
-                        updateTodayStepCount();
-                    }
+                    todayStepCount = newTodayStepCount;
+                    updateTodayStepCount();
                     checkForNotification();
                     updateWidgets();
                 }
@@ -258,11 +256,20 @@ public class FitSyncAdapter extends AbstractThreadedSyncAdapter
 
         // Update current daily step count in database.
         if (currentDailyStepCountValue.size() > 0) {
-            getContext().getContentResolver().update(
+            int rowsUpdated = getContext().getContentResolver().update(
                     HedgehogContract.AppStateEntry.CONTENT_URI,
                     currentDailyStepCountValue,
                     null,
                     null);
+
+            Log.d(LOG_TAG, "rowsUpdated = " + rowsUpdated);
+            Cursor cursor = getContext().getContentResolver().query(
+                    HedgehogContract.AppStateEntry.CONTENT_URI,
+                    null,
+                    null,
+                    null, null);
+            cursor.moveToFirst();
+            cursor.close();
         }
     }
 
