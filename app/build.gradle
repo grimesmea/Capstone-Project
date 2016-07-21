@@ -1,9 +1,16 @@
 apply plugin: 'com.android.application'
 
 android {
+    signingConfigs {
+        config {
+            keyAlias 'pricklefit'
+            keyPassword 'ine653HVSpUk'
+            storeFile file('../keystore.jks')
+            storePassword 'ine653HVSpUk'
+        }
+    }
     compileSdkVersion 23
     buildToolsVersion "23.0.3"
-
     defaultConfig {
         applicationId "grimesmea.gmail.com.pricklefit"
         minSdkVersion 11
@@ -15,7 +22,11 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.config
         }
+    }
+    lintOptions {
+        abortOnError false
     }
 }
 

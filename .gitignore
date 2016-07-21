@@ -1,9 +1,11 @@
+# Built application files:
 *.iml
 .gradle
 /local.properties
 .DS_Store
 /build
 /captures
+*.apk
 
 # IDEA User-specific stuff:
 .idea/workspace.xml
