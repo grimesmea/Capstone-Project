@@ -22,7 +22,7 @@
             android:layout_weight="1"
             android:adjustViewBounds="true"
             android:scaleType="fitCenter"
-            tools:src="@drawable/ic_hedgehog" />
+            tools:src="@drawable/ic_hedgehog_light" />
 
         <TextView
             android:id="@+id/widget_step_count"
@@ -32,6 +32,6 @@
             android:fontFamily="sans-serif"
             android:textAppearance="?android:textAppearanceLarge"
             android:textColor="@color/default_text"
-            tools:text="48" />
+            tools:text="@string/widget_step_count_placeholder" />
     </LinearLayout>
 </FrameLayout>

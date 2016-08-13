@@ -1,32 +1,32 @@
 {
   "hedgehogs": [
     {
-      "name": "Gigi",
-      "image_name": "hedgie_1",
-      "silhouette_image_name": "hedgehog_1_silhouette",
-      "description": "Gigi is fun-loving and loves to cuddle.",
-      "happiness_level": 5,
+      "name": "Naru",
+      "image_name": "naru_default_image",
+      "silhouette_image_name": "naru_silhouette_image",
+      "description": "Naru is an explorer and adventurer at heart.",
+      "happiness_level": 0,
       "fitness_level": 1,
       "unlock_status": true,
       "selected_status": true
+    },
+    {
+      "name": "Gigi",
+      "image_name": "gigi_default_image",
+      "silhouette_image_name": "gigi_silhouette_image",
+      "description": "Gigi is fun-loving and loves to cuddle.",
+      "happiness_level": 0,
+      "fitness_level": 2,
+      "unlock_status": false,
+      "selected_status": false
     },
     {
       "name": "Rylai",
       "image_name": "hedgie_2",
       "silhouette_image_name": "hedgehog_2_silhouette",
       "description": "Rylai is rambunctious always looking to play.",
-      "happiness_level": 1,
-      "fitness_level": 1,
-      "unlock_status": false,
-      "selected_status": false
-    },
-    {
-      "name": "Naru",
-      "image_name": "hedgie_3",
-      "silhouette_image_name": "hedgehog_3_silhouette",
-      "description": "Naru is an explorer and adventurer at heart.",
-      "happiness_level": 1,
-      "fitness_level": 2,
+      "happiness_level": 0,
+      "fitness_level": 3,
       "unlock_status": false,
       "selected_status": false
     }

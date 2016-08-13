@@ -22,7 +22,6 @@ import grimesmea.gmail.com.pricklefit.R;
 public class StepCountWidgetIntentService extends IntentService {
 
     public static final String LOG_TAG = StepCountWidgetIntentService.class.getSimpleName();
-    private static String todayStepCountStr;
     private static int todayStepCount;
 
     public StepCountWidgetIntentService() {
@@ -58,7 +57,7 @@ public class StepCountWidgetIntentService extends IntentService {
             }
             RemoteViews views = new RemoteViews(getPackageName(), layoutId);
 
-            int hedgehogArtResourceId = R.drawable.ic_hedgehog;
+            int hedgehogArtResourceId = R.mipmap.ic_launcher;
             String description = getResources().getString(R.string.widget_description);
 
             // Add the data to the RemoteViews

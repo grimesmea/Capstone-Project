@@ -25,40 +25,35 @@
             android:adjustViewBounds="true"
             android:gravity="start"
             android:scaleType="fitCenter"
-            tools:src="@drawable/ic_hedgehog" />
+            tools:src="@drawable/ic_hedgehog_light" />
 
-        <RelativeLayout
+        <LinearLayout
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_gravity="end"
             android:layout_weight="1"
-            android:gravity="center_vertical">
+            android:gravity="center_vertical"
+            android:orientation="vertical">
 
             <TextView
                 android:id="@+id/widget_step_count"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_alignParentRight="true"
-                android:layout_alignParentTop="true"
+                android:layout_gravity="end"
                 android:fontFamily="sans-serif-condensed"
-                android:paddingTop="@dimen/default_padding"
                 android:textColor="@color/default_text"
-                android:textSize="44dp"
+                android:textSize="36sp"
                 tools:text="@string/widget_step_count_placeholder" />
 
             <TextView
                 android:id="@+id/widget_description"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:layout_alignParentEnd="true"
-                android:layout_alignParentRight="true"
+                android:layout_gravity="end"
                 android:fontFamily="sans-serif-light"
-                android:paddingBottom="@dimen/default_padding"
                 android:textAppearance="?android:textAppearanceMedium"
                 android:textColor="@color/default_text"
                 tools:text="@string/widget_description" />
-        </RelativeLayout>
+        </LinearLayout>
     </LinearLayout>
 </FrameLayout>

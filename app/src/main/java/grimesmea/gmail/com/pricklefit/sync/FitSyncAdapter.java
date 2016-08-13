@@ -360,7 +360,7 @@ public class FitSyncAdapter extends AbstractThreadedSyncAdapter
 
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(getContext())
-                        .setSmallIcon(R.drawable.ic_hedgehog)
+                        .setSmallIcon(R.drawable.ic_hedgehog_dark)
                         .setContentTitle(title)
                         .setStyle(new NotificationCompat.BigTextStyle().bigText(title))
                         .setContentText(content)

@@ -6,6 +6,7 @@
     android:minResizeHeight="@dimen/widget_step_count_min_resize_height"
     android:minResizeWidth="@dimen/widget_step_count_min_resize_width"
     android:minWidth="@dimen/widget_step_count_default_width"
+    android:previewImage="@drawable/widget_preview"
     android:resizeMode="horizontal"
     android:updatePeriodMillis="0"
     tools:ignore="UnusedAttribute" />

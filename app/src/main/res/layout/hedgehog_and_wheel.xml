@@ -10,7 +10,7 @@
         android:layout_height="match_parent"
         android:contentDescription="@string/hedgehog_wheel_description"
         android:scaleType="fitCenter"
-        android:src="@drawable/pricklefit_wheel" />
+        android:src="@drawable/wheel" />
 
     <ImageView
         android:id="@+id/hedgehog_image"

@@ -12,7 +12,7 @@
     <string name="pref_notifications_enabled_key" translatable="false">enable_notifications</string>
     <string name="pref_notifications_enabled_false">Not Enabled</string>
     <string name="pref_notifications_enabled_true">Enabled</string>
-    <string name="pref_notifications_enabled_label">Step Goal Progress Notifications</string>
+    <string name="pref_notifications_enabled_label">Goal Notifications</string>
 
     <!-- Main Activity -->
     <string name="navigation_drawer_open">Open navigation drawer</string>
@@ -35,8 +35,8 @@
     <string name="empty_daily_steps_list_no_data">No step data available for the past 7 days.</string>
 
     <!-- Hedgehog Collection Activity -->
-    <string name="title_activity_hedgehog_collection">Hedgie Collection</string>
-    <string name="empty_hedgehog_collection_list">Your hedgehog have gone missing. Please restart the app to try to find them.</string>
+    <string name="title_activity_hedgehog_collection">Hedgehog Collection</string>
+    <string name="empty_hedgehog_collection_list">Your hedgehogs have gone missing. Please restart the app and we will do our best to find them.</string>
     <string name="hedgehog_hearts_content_description">Hearts indicating the hedgehog\'s happiness level</string>
     <string name="unlocked_hedgehog_heart_count_content_description">Current happiness level: </string>
     <string name="selected_hedgehog_image_content_description">Image of selected hedgehog</string>
@@ -52,12 +52,12 @@
     <string name="title_activity_settings">Settings</string>
 
     <!-- Notifications -->
-    <string name="goal_met_notification_title">Goal Met!</string>
-    <string name="goal_met_notification_content_start">Great job meeting your </string>
-    <string name="goal_met_notification_content_end"> step goal for the day.</string>
-    <string name="goal_half_met_notification_title">Halfway There!</string>
-    <string name="goal_half_met_notification_content_start">You are almost to your goal of</string>
-    <string name="goal_half_met_notification_content_end"> steps.</string>
+    <string name="goal_met_notification_title">You met your goal!</string>
+    <string name="goal_met_notification_content_start">Take </string>
+    <string name="goal_met_notification_content_end"> steps a day</string>
+    <string name="goal_half_met_notification_title">You are halfway to your goal!</string>
+    <string name="goal_half_met_notification_content_start">Take </string>
+    <string name="goal_half_met_notification_content_end"> steps a day</string>
     <string name="title_widget_step_count">PrickleFit Step Count</string>
 
     <!-- Widget -->
