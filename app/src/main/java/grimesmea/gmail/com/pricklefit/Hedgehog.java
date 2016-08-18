@@ -6,11 +6,13 @@ import android.content.Context;
 import android.database.Cursor;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import grimesmea.gmail.com.pricklefit.data.HedgehogContract.HedgehogsEntry;
@@ -153,14 +155,15 @@ public class Hedgehog implements Parcelable {
     }
 
     public int calculateHappinessChange(int dailySteps, int dailyStepGoal) {
-        if (dailySteps / fitnessLevel >= dailyStepGoal / 2) {
+        if ((dailySteps / fitnessLevel) >= dailyStepGoal) {
             return 1;
-        } else if (dailySteps / fitnessLevel < dailyStepGoal / 4) {
+        } else if ((dailySteps / fitnessLevel) < dailyStepGoal / 2) {
             return -1;
         } else {
             return 0;
         }
     }
+
 
     public int calculateNewHappinessLevel(List<Integer> happinessChanges) {
         int newHappinessLevel = happinessLevel;
@@ -173,7 +176,15 @@ public class Hedgehog implements Parcelable {
         return newHappinessLevel;
     }
 
-    public void updateHappinessLevel(int newHappinessLevel, Activity activity) {
+    public void updateHappinessLevel(List<DailyStepsDTO> dailyStepTotals, int dailyStepGoal, Activity activity) {
+        List<Integer> happinessChanges = new ArrayList<Integer>();
+        int newHappinessLevel;
+        for (DailyStepsDTO dailySteps : dailyStepTotals) {
+            int happinessChange = calculateHappinessChange(dailySteps.getSteps(), dailyStepGoal);
+            happinessChanges.add(happinessChange);
+        }
+        newHappinessLevel = calculateNewHappinessLevel(happinessChanges);
+
         if (newHappinessLevel != happinessLevel) {
             ContentValues happinessLevelValue = new ContentValues();
             happinessLevelValue.put(HedgehogsEntry.COLUMN_HAPPINESS_LEVEL, newHappinessLevel);
@@ -191,6 +202,8 @@ public class Hedgehog implements Parcelable {
             return;
         }
 
+        Log.d("Checking for unlocks", name);
+
         for (DailyStepsDTO dailySteps : dailyStepTotals) {
             if (dailySteps.getSteps() >= (dailyStepGoal / 2 * fitnessLevel)) {
                 unlockHedgehog(activity);
@@ -199,10 +212,22 @@ public class Hedgehog implements Parcelable {
         }
     }
 
+    public void checkForUnlock(int todayStepCount, int dailyStepGoal, long todayTimestamp, Activity activity) {
+        if (isUnlocked) {
+            return;
+        }
+
+        List<DailyStepsDTO> dailyStepTotals = new ArrayList<DailyStepsDTO>();
+        DailyStepsDTO dailyStepsDTO = new DailyStepsDTO(todayTimestamp, todayStepCount);
+        dailyStepTotals.add(dailyStepsDTO);
+        checkForUnlock(dailyStepTotals, dailyStepGoal, activity);
+    }
+
     public void unlockHedgehog(Activity activity) {
         if (isUnlocked) {
             return;
         }
+        Log.d("Unlocking", name);
 
         ContentValues unlockStatusValue = new ContentValues();
         unlockStatusValue.put(HedgehogsEntry.COLUMN_UNLOCK_STATUS, (byte) 1);

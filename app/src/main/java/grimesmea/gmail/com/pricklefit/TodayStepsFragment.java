@@ -107,7 +107,7 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
     private long hedgehogStateUpdateTimestamp;
     private boolean isNotificationsEnabled;
     private boolean needsToUpdateHedgehogState = false;
-    private long todayTimeStamp;
+    private long todayTimestamp;
     private LinearLayout stepCountContainer;
     private ImageView hedgehogImageView;
     private TextView todayStepsTextView;
@@ -148,8 +148,9 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
         }
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
-
+        updateTodayTimestamp();
         buildGoogleFitApiClient();
+        getUnresolvedDaysStepCounts(hedgehogStateUpdateTimestamp, todayTimestamp);
     }
 
     @Override
@@ -161,12 +162,17 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        getUnresolvedDaysStepCounts(hedgehogStateUpdateTimestamp, todayTimestamp);
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_today_steps, container, false);
         todayStepsTextView = (TextView) rootView.findViewById(R.id.today_step_count);
         if (todayStepCount >= 0) {
-            Log.d(LOG_TAG, "onCreateView todayStepCount = " + todayStepCount);
             updateStepCountTextView();
         }
 
@@ -212,11 +218,8 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
 
                         // Subscribe to the Google Fit Recordings API for TYPE_STEP_COUNT_DELTA data.
                         subscribeToRecordingApi();
-
-                        // Subscribe to the Google Fit History API for TYPE_STEP_COUNT_DELTA data.
-                        if (needsToUpdateHedgehogState) {
-                            getUnresolvedDaysStepCounts();
-                        }
+                        // Check steps counts and update app state of any unprocessed days.
+                        getUnresolvedDaysStepCounts(hedgehogStateUpdateTimestamp, todayTimestamp);
 
                         // Find and list sensors data sources using the Google Fit Sensors API for
                         // TYPE_STEP_COUNT_DELTA data.
@@ -321,7 +324,7 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
                 @Override
                 public void run() {
                     Log.d(LOG_TAG, "Delta step = " + Integer.toString(value.asInt()));
-                    if (value.asInt() > 0) {
+                    if (value.asInt() > 0 && todayTimestamp == hedgehogStateUpdateTimestamp) {
                         todayStepCount += value.asInt();
                         updateStepCountTextView();
                         Log.d(LOG_TAG, "todayStepCount = " + Integer.toString(value.asInt()));
@@ -412,6 +415,9 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
                     Log.d(LOG_TAG, "onLoadFinished, updating step count view to " + todayStepCount);
                     updateStepCountTextView();
 
+                    updateHedgehogHappiness();
+                    checkForHedgehogUnlocks();
+
                     dailyStepGoal = appStateDTO.getDailyStepGoal();
                     if (dailyStepGoal != 0) {
                         updateDailyStepGoalPref();
@@ -423,54 +429,24 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
                         updateNotificationsEnablePref();
                     }
 
+                    updateTodayTimestamp();
                     hedgehogStateUpdateTimestamp = appStateDTO.getHedgehogStateUpdateTimestamp();
-                    updateTodayTimeStamp();
-                    if (hedgehogStateUpdateTimestamp != todayTimeStamp &&
+                    Log.d(LOG_TAG, "hedgehogStateUpdateTimestamp = " + hedgehogStateUpdateTimestamp);
+                    Log.d(LOG_TAG, "todayTimestamp = " + hedgehogStateUpdateTimestamp);
+                    if (hedgehogStateUpdateTimestamp < todayTimestamp &&
                             hedgehogStateUpdateTimestamp != 0) {
-                        Log.d(LOG_TAG, "Updating hedgehogStateUpdateTimestamp in Content Provider to " + simpleDateFormat.format(todayTimeStamp));
                         needsToUpdateHedgehogState = true;
-                        ContentValues hedgehogStateUpdateTimestampCountValue = new ContentValues();
-                        hedgehogStateUpdateTimestampCountValue.put(
-                                AppStateEntry.COLUMN_HEDGEHOG_STATE_UPDATE_TIMESTAMP, todayTimeStamp);
-
-                        // Update goal met timestamp in database.
-                        if (hedgehogStateUpdateTimestampCountValue.size() > 0) {
-                            getContext().getContentResolver().update(
-                                    HedgehogContract.AppStateEntry.CONTENT_URI,
-                                    hedgehogStateUpdateTimestampCountValue,
-                                    null,
-                                    null);
-                        }
-                        Log.d(LOG_TAG, "HedgehogStateUpdateTimestamp in Content Provider is now " + simpleDateFormat.format(todayTimeStamp));
+                        getUnresolvedDaysStepCounts(hedgehogStateUpdateTimestamp, todayTimestamp);
+                        updateHedgehogStateUpdateTimestamp();
+                    }
+                    if (hedgehogStateUpdateTimestamp == 0) {
+                        updateHedgehogStateUpdateTimestamp();
                     }
                 }
                 break;
             default:
                 return;
         }
-    }
-
-    private void updateDailyStepGoalPref() {
-        sharedPreferences.edit().putString(getString(R.string.pref_step_goal_key),
-                String.valueOf(dailyStepGoal))
-                .apply();
-    }
-
-    private void updateNotificationsEnablePref() {
-        Log.d(LOG_TAG, "Updating notifications enabled pref to " + isNotificationsEnabled);
-        sharedPreferences.edit().putBoolean(getString(R.string.pref_notifications_enabled_key),
-                isNotificationsEnabled)
-                .apply();
-    }
-
-    private long updateTodayTimeStamp() {
-        cal.setTime(new Date());
-        cal.set(Calendar.HOUR_OF_DAY, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.MILLISECOND, 0);
-        todayTimeStamp = cal.getTimeInMillis();
-        return todayTimeStamp;
     }
 
     @Override
@@ -480,14 +456,37 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
         hedgehogDrawable = null;
     }
 
-    private void getUnresolvedDaysStepCounts() {
-        long endTime;
-        long startTime;
+    private long updateHedgehogStateUpdateTimestamp() {
+        hedgehogStateUpdateTimestamp = todayTimestamp;
+        ContentValues hedgehogStateUpdateTimestampCountValue = new ContentValues();
+        hedgehogStateUpdateTimestampCountValue.put(
+                AppStateEntry.COLUMN_HEDGEHOG_STATE_UPDATE_TIMESTAMP, hedgehogStateUpdateTimestamp);
+        // Update hedgehog state met timestamp in database.
+        if (hedgehogStateUpdateTimestampCountValue.size() > 0) {
+            getContext().getContentResolver().update(
+                    HedgehogContract.AppStateEntry.CONTENT_URI,
+                    hedgehogStateUpdateTimestampCountValue,
+                    null,
+                    null);
+        }
 
-        endTime = updateTodayTimeStamp();
-        startTime = hedgehogStateUpdateTimestamp;
+        Log.d(LOG_TAG, "HedgehogStateUpdateTimestamp in Content Provider is now " + simpleDateFormat.format(hedgehogStateUpdateTimestamp));
+        return hedgehogStateUpdateTimestamp;
+    }
 
+    // Query the Google Fit History API for TYPE_STEP_COUNT_DELTA data.
+    private void getUnresolvedDaysStepCounts(long startTime, long endTime) {
+        Log.d(LOG_TAG, "checking for unresolved daily step counts");
+        if (!needsToUpdateHedgehogState || mGoogleApiClient == null) {
+            Log.d(LOG_TAG, "hedgehog states do not need to be updated; " +
+                    "needsToUpdateHedgehogState = " + needsToUpdateHedgehogState +
+                    " mGoogleApiClient = " + mGoogleApiClient);
+            return;
+        }
 
+        Log.d(LOG_TAG, "endTime = " + startTime);
+        Log.d(LOG_TAG, "startTime = " + endTime);
+        needsToUpdateHedgehogState = false;
         DataReadRequest readRequest = new DataReadRequest.Builder()
                 // The data request can specify multiple data types to return, effectively
                 // combining multiple data queries into one call.
@@ -528,8 +527,7 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
                         }
                     }
                 }
-                updateHedgehogStates();
-                needsToUpdateHedgehogState = false;
+                updateHedgehogHappiness();
             }
         });
     }
@@ -546,23 +544,50 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
         }
     }
 
-    private void updateHedgehogStates() {
+    private void updateDailyStepGoalPref() {
+        sharedPreferences.edit().putString(getString(R.string.pref_step_goal_key),
+                String.valueOf(dailyStepGoal))
+                .apply();
+    }
+
+    private void updateNotificationsEnablePref() {
+        Log.d(LOG_TAG, "Updating notifications enabled pref to " + isNotificationsEnabled);
+        sharedPreferences.edit().putBoolean(getString(R.string.pref_notifications_enabled_key),
+                isNotificationsEnabled)
+                .apply();
+    }
+
+    private long updateTodayTimestamp() {
+        cal.setTime(new Date());
+        cal.set(Calendar.HOUR, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        todayTimestamp = cal.getTimeInMillis();
+        return todayTimestamp;
+    }
+
+    private void updateHedgehogHappiness() {
         if (dailyStepTotals.size() < 1) {
             return;
         }
-
+        Log.d(LOG_TAG, "updating hedgehog states");
         for (Hedgehog hedgehog : hedgehogs) {
             if (hedgehog.getIsUnlocked()) {
-                List<Integer> happinessChanges = new ArrayList<Integer>();
-                int newHappinessLevel;
-                for (DailyStepsDTO dailySteps : dailyStepTotals) {
-                    int happinessChange = hedgehog.calculateHappinessChange(dailySteps.getSteps(), dailyStepGoal);
-                    happinessChanges.add(happinessChange);
+                hedgehog.updateHappinessLevel(dailyStepTotals, dailyStepGoal, activity);
+            }
+        }
+    }
+
+    private void checkForHedgehogUnlocks() {
+        Log.d(LOG_TAG, "checking for hedgehog unlocks");
+        for (Hedgehog hedgehog : hedgehogs) {
+            if (!hedgehog.getIsUnlocked()) {
+                if (dailyStepTotals.size() > 0) {
+                    hedgehog.checkForUnlock(dailyStepTotals, dailyStepGoal, activity);
+                } else if (todayStepCount > 0) {
+                    hedgehog.checkForUnlock(todayStepCount, dailyStepGoal, todayTimestamp, activity);
                 }
-                newHappinessLevel = hedgehog.calculateNewHappinessLevel(happinessChanges);
-                hedgehog.updateHappinessLevel(newHappinessLevel, activity);
-            } else {
-                hedgehog.checkForUnlock(dailyStepTotals, dailyStepGoal, activity);
             }
         }
     }
