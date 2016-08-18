@@ -89,7 +89,6 @@ public class HedgehogCollectionFragment extends Fragment implements LoaderManage
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        // When tablets rotate, the currently selected list item needs to be saved.
         mHedgehogCollectionAdapter.onSaveInstanceState(outState);
         super.onSaveInstanceState(outState);
     }
@@ -126,7 +125,7 @@ public class HedgehogCollectionFragment extends Fragment implements LoaderManage
                         mRecyclerView.getViewTreeObserver().removeOnPreDrawListener(this);
 
                         if (position == RecyclerView.NO_POSITION &&
-                                -1 != intialSelectedHedgehogPosition) {
+                                intialSelectedHedgehogPosition != -1) {
                             Cursor data = mHedgehogCollectionAdapter.getCursor();
                             int count = data.getCount();
                             for (int i = 0; i < count; i++) {
@@ -148,7 +147,7 @@ public class HedgehogCollectionFragment extends Fragment implements LoaderManage
 
                         RecyclerView.ViewHolder viewHolder = mRecyclerView.findViewHolderForAdapterPosition(position);
 
-                        if (null != viewHolder && isAutoSelectView) {
+                        if (viewHolder != null && isAutoSelectView) {
                             mHedgehogCollectionAdapter.selectView(viewHolder);
                         }
                         return true;
