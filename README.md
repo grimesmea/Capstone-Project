@@ -30,10 +30,9 @@ To run the release build of the app, create a keystore and add a file
 code snippet to the *release.properties* file using the keystore password,
 key alias, and key password to complete.
 
-`keyStore=[FILE NAME OF THE KEYSTORE YOU CREATED]
-
+```
+keyStore=[FILE NAME OF THE KEYSTORE YOU CREATED]
 keyStorePassword=[KEYSTORE PASSWORD]
-
 keyAlias=[KEY ALIAS]
-
-keyPassword=[KEY PASSWORD]`
+keyPassword=[KEY PASSWORD]
+```
