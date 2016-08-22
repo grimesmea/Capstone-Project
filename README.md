@@ -31,6 +31,9 @@ code snippet to the *release.properties* file using the keystore password,
 key alias, and key password to complete.
 
 `keyStore=[FILE NAME OF THE KEYSTORE YOU CREATED]
+
 keyStorePassword=[KEYSTORE PASSWORD]
+
 keyAlias=[KEY ALIAS]
+
 keyPassword=[KEY PASSWORD]`
