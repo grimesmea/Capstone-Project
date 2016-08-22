@@ -17,3 +17,7 @@
 # IDEA Gradle:
 .idea/gradle.xml
 .idea/libraries
+
+# Keystore and config:
+keystore.jks
+release.properties
