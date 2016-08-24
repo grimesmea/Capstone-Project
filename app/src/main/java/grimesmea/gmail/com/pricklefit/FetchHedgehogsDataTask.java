@@ -77,7 +77,6 @@ public class FetchHedgehogsDataTask extends AsyncTask<Void, Void, Hedgehog[]> {
 
             for (Hedgehog hedgehog : hedgehogsArray) {
                 ContentValues hedgehogContentValues = new ContentValues(hedgehog.createContentValues());
-                ;
                 hedgehogsContentValuesVector.add(hedgehogContentValues);
             }
             hedgehogsContentValuesVector.toArray(hedgehogsContentValuesArray);
@@ -87,7 +86,6 @@ public class FetchHedgehogsDataTask extends AsyncTask<Void, Void, Hedgehog[]> {
         }
 
         Log.d(LOG_TAG, insertedRows + " rows inserted");
-
         return insertedRows;
     }
 

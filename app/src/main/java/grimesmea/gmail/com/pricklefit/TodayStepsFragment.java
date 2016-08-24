@@ -115,6 +115,9 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
     private Hedgehog selectedHedgehog;
     private Drawable hedgehogDrawable;
 
+    private Object mutex = new Object();
+    private boolean isLocked = false;
+
     public TodayStepsFragment() {
         // Empty constructor required for fragment subclasses
     }
@@ -122,6 +125,7 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         if (savedInstanceState != null) {
             authInProgress = savedInstanceState.getBoolean(AUTH_PENDING);
             todayStepCount = savedInstanceState.getInt(TODAY_STEP_TOTAL);
@@ -150,7 +154,6 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
         updateTodayTimestamp();
         buildGoogleFitApiClient();
-        getUnresolvedDaysStepCounts(hedgehogStateUpdateTimestamp, todayTimestamp);
     }
 
     @Override
@@ -164,7 +167,6 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
     @Override
     public void onResume() {
         super.onResume();
-        getUnresolvedDaysStepCounts(hedgehogStateUpdateTimestamp, todayTimestamp);
     }
 
     @Override
@@ -388,6 +390,7 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
         switch (loader.getId()) {
             case SELECTED_HEDGEHOG_LOADER:
                 if (data.moveToFirst()) {
+                    hedgehogs.clear();
                     do {
                         Hedgehog hedgehog = new Hedgehog(data);
                         hedgehogs.add(hedgehog);
@@ -415,13 +418,12 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
                     Log.d(LOG_TAG, "onLoadFinished, updating step count view to " + todayStepCount);
                     updateStepCountTextView();
 
-                    updateHedgehogHappiness();
-                    checkForHedgehogUnlocks();
-
                     dailyStepGoal = appStateDTO.getDailyStepGoal();
                     if (dailyStepGoal != 0) {
                         updateDailyStepGoalPref();
                         updateDailyStepGoalTextView();
+
+                        checkForHedgehogUnlocks();
                     }
 
                     if (isNotificationsEnabled != appStateDTO.isNotificationsEnabled()) {
@@ -431,16 +433,17 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
 
                     updateTodayTimestamp();
                     hedgehogStateUpdateTimestamp = appStateDTO.getHedgehogStateUpdateTimestamp();
+
                     Log.d(LOG_TAG, "hedgehogStateUpdateTimestamp = " + hedgehogStateUpdateTimestamp);
-                    Log.d(LOG_TAG, "todayTimestamp = " + hedgehogStateUpdateTimestamp);
+                    Log.d(LOG_TAG, "todayTimestamp = " + todayTimestamp);
+
+                    if (hedgehogStateUpdateTimestamp == 0) {
+                        updateHedgehogStateUpdateTimestamp();
+                    }
                     if (hedgehogStateUpdateTimestamp < todayTimestamp &&
                             hedgehogStateUpdateTimestamp != 0) {
                         needsToUpdateHedgehogState = true;
                         getUnresolvedDaysStepCounts(hedgehogStateUpdateTimestamp, todayTimestamp);
-                        updateHedgehogStateUpdateTimestamp();
-                    }
-                    if (hedgehogStateUpdateTimestamp == 0) {
-                        updateHedgehogStateUpdateTimestamp();
                     }
                 }
                 break;
@@ -461,7 +464,7 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
         ContentValues hedgehogStateUpdateTimestampCountValue = new ContentValues();
         hedgehogStateUpdateTimestampCountValue.put(
                 AppStateEntry.COLUMN_HEDGEHOG_STATE_UPDATE_TIMESTAMP, hedgehogStateUpdateTimestamp);
-        // Update hedgehog state met timestamp in database.
+        // Update hedgehog state timestamp in database.
         if (hedgehogStateUpdateTimestampCountValue.size() > 0) {
             getContext().getContentResolver().update(
                     HedgehogContract.AppStateEntry.CONTENT_URI,
@@ -477,59 +480,84 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
     // Query the Google Fit History API for TYPE_STEP_COUNT_DELTA data.
     private void getUnresolvedDaysStepCounts(long startTime, long endTime) {
         Log.d(LOG_TAG, "checking for unresolved daily step counts");
-        if (!needsToUpdateHedgehogState || mGoogleApiClient == null) {
+        if (!needsToUpdateHedgehogState || !mGoogleApiClient.isConnected() || startTime == endTime) {
             Log.d(LOG_TAG, "hedgehog states do not need to be updated; " +
                     "needsToUpdateHedgehogState = " + needsToUpdateHedgehogState +
-                    " mGoogleApiClient = " + mGoogleApiClient);
+                    " mGoogleApiClient isConnected?= " + mGoogleApiClient.isConnected());
             return;
         }
 
         Log.d(LOG_TAG, "endTime = " + startTime);
         Log.d(LOG_TAG, "startTime = " + endTime);
-        needsToUpdateHedgehogState = false;
-        DataReadRequest readRequest = new DataReadRequest.Builder()
-                // The data request can specify multiple data types to return, effectively
-                // combining multiple data queries into one call.
-                // In this example, it's very unlikely that the request is for several hundred
-                // datapoints each consisting of a few steps and a timestamp.  The more likely
-                // scenario is wanting to see how many steps were walked per day, for 7 days.
-                .aggregate(DataType.TYPE_STEP_COUNT_DELTA, DataType.AGGREGATE_STEP_COUNT_DELTA)
-                // Analogous to a "Group By" in SQL, defines how data should be aggregated.
-                // bucketByTime allows for a time span, whereas bucketBySession would allow
-                // bucketing by "sessions", which would need to be defined in code.
-                .bucketByTime(1, TimeUnit.DAYS)
-                .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
-                .build();
 
+        if (claimLock()) {
+            DataReadRequest readRequest = new DataReadRequest.Builder()
+                    // The data request can specify multiple data types to return, effectively
+                    // combining multiple data queries into one call.
+                    // In this example, it's very unlikely that the request is for several hundred
+                    // datapoints each consisting of a few steps and a timestamp.  The more likely
+                    // scenario is wanting to see how many steps were walked per day, for 7 days.
+                    .aggregate(DataType.TYPE_STEP_COUNT_DELTA, DataType.AGGREGATE_STEP_COUNT_DELTA)
+                    // Analogous to a "Group By" in SQL, defines how data should be aggregated.
+                    // bucketByTime allows for a time span, whereas bucketBySession would allow
+                    // bucketing by "sessions", which would need to be defined in code.
+                    .bucketByTime(1, TimeUnit.DAYS)
+                    .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
+                    .build();
 
-        PendingResult<DataReadResult> stepsResult = Fitness.HistoryApi
-                .readData(mGoogleApiClient, readRequest);
-        stepsResult.setResultCallback(new ResultCallback() {
-            @Override
-            public void onResult(Result result) {
-                DataReadResult dataReadResult = (DataReadResult) result;
-                dailyStepTotals.clear();
-                if (result.getStatus().isSuccess()) {
-                    if (dataReadResult.getBuckets().size() > 0) {
-                        Log.i(LOG_TAG, "Number of returned buckets of DataSets is: "
-                                + dataReadResult.getBuckets().size());
-                        for (Bucket bucket : dataReadResult.getBuckets()) {
-                            List<DataSet> dataSets = bucket.getDataSets();
-                            for (DataSet dataSet : dataSets) {
+            PendingResult<DataReadResult> stepsResult = Fitness.HistoryApi
+                    .readData(mGoogleApiClient, readRequest);
+            stepsResult.setResultCallback(new ResultCallback() {
+                @Override
+                public void onResult(Result result) {
+                    DataReadResult dataReadResult = (DataReadResult) result;
+                    dailyStepTotals.clear();
+                    if (result.getStatus().isSuccess()) {
+                        if (dataReadResult.getBuckets().size() > 0) {
+                            Log.i(LOG_TAG, "Number of returned buckets of DataSets is: "
+                                    + dataReadResult.getBuckets().size());
+                            for (Bucket bucket : dataReadResult.getBuckets()) {
+                                List<DataSet> dataSets = bucket.getDataSets();
+                                for (DataSet dataSet : dataSets) {
+                                    extractDailyStepData(dataSet);
+                                }
+                            }
+                        } else if (dataReadResult.getDataSets().size() > 0) {
+                            Log.i(LOG_TAG, "Number of returned DataSets is: "
+                                    + dataReadResult.getDataSets().size());
+                            for (DataSet dataSet : dataReadResult.getDataSets()) {
                                 extractDailyStepData(dataSet);
                             }
                         }
-                    } else if (dataReadResult.getDataSets().size() > 0) {
-                        Log.i(LOG_TAG, "Number of returned DataSets is: "
-                                + dataReadResult.getDataSets().size());
-                        for (DataSet dataSet : dataReadResult.getDataSets()) {
-                            extractDailyStepData(dataSet);
-                        }
                     }
+                    if (dailyStepGoal != 0) {
+                        updateHedgehogHappiness();
+                    }
+                    updateHedgehogStateUpdateTimestamp();
+                    needsToUpdateHedgehogState = false;
+                    freeLock();
                 }
-                updateHedgehogHappiness();
+            });
+        }
+    }
+
+    private boolean claimLock() {
+        synchronized (mutex) {
+            if (!isLocked) {
+                isLocked = true;
+                return true;
+            } else {
+                return false;
             }
-        });
+        }
+    }
+
+    private void freeLock() {
+        synchronized (mutex) {
+            if (isLocked) {
+                isLocked = false;
+            }
+        }
     }
 
     private void extractDailyStepData(DataSet dataSet) {
@@ -573,6 +601,7 @@ public class TodayStepsFragment extends Fragment implements LoaderManager.Loader
         }
         Log.d(LOG_TAG, "updating hedgehog states");
         for (Hedgehog hedgehog : hedgehogs) {
+            Log.d(LOG_TAG, "size of hedgehog list " + hedgehogs.size());
             if (hedgehog.getIsUnlocked()) {
                 hedgehog.updateHappinessLevel(dailyStepTotals, dailyStepGoal, activity);
             }

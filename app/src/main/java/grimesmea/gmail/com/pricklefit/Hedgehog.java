@@ -160,9 +160,10 @@ public class Hedgehog implements Parcelable {
         for (DailyStepsDTO dailySteps : dailyStepTotals) {
             int happinessChange = calculateHappinessChange(dailySteps.getSteps(), dailyStepGoal);
             happinessChanges.add(happinessChange);
+            Log.d(name + "stepDTO day", dailySteps.getFormattedDay());
         }
         newHappinessLevel = calculateNewHappinessLevel(happinessChanges);
-        Log.d(name + "updateHappinessLevel to", Integer.toString(newHappinessLevel));
+        Log.d(name + " updateHappinessLevel", Integer.toString(newHappinessLevel));
         if (newHappinessLevel != happinessLevel) {
             ContentValues happinessLevelValue = new ContentValues();
             happinessLevelValue.put(HedgehogsEntry.COLUMN_HAPPINESS_LEVEL, newHappinessLevel);
@@ -176,11 +177,14 @@ public class Hedgehog implements Parcelable {
     }
 
     public int calculateHappinessChange(int dailySteps, int dailyStepGoal) {
-        if (dailySteps / fitnessLevel * 2 >= dailyStepGoal) {
+        if ((dailySteps / fitnessLevel) * 2 >= dailyStepGoal) {
+            Log.d(name + " calculate happy change", ((dailySteps / fitnessLevel) * 2) + " add 1 to happiness");
             return 1;
         } else if (dailySteps / fitnessLevel < dailyStepGoal / 4) {
+            Log.d(name + " calculate happy change", (dailySteps / fitnessLevel) + " substract 1 from happiness");
             return -1;
         } else {
+            Log.d(name + " calculate happy change", (dailySteps / fitnessLevel) + " no change");
             return 0;
         }
     }
@@ -188,12 +192,12 @@ public class Hedgehog implements Parcelable {
     public int calculateNewHappinessLevel(List<Integer> happinessChanges) {
         int newHappinessLevel = happinessLevel;
         for (int happinessChange : happinessChanges) {
-            Log.d("Happiness change", Integer.toString(newHappinessLevel));
             int potentialNewHappinessLevel = newHappinessLevel + happinessChange;
             if (potentialNewHappinessLevel >= MIN_HAPPINESS_LEVEL && potentialNewHappinessLevel <= MAX_HAPPINESS_LEVEL) {
                 newHappinessLevel = potentialNewHappinessLevel;
             }
         }
+        Log.d(name + " new happiness level", Integer.toString(newHappinessLevel));
         return newHappinessLevel;
     }
 
@@ -206,6 +210,7 @@ public class Hedgehog implements Parcelable {
 
         for (DailyStepsDTO dailySteps : dailyStepTotals) {
             if (dailySteps.getSteps() >= (dailyStepGoal * fitnessLevel)) {
+                Log.d(name + " unlocking with ", dailySteps.getSteps() + " vs dailyStep Goal of " + dailyStepGoal + " * " + fitnessLevel);
                 unlockHedgehog(activity);
                 return;
             }
@@ -216,8 +221,6 @@ public class Hedgehog implements Parcelable {
         if (isUnlocked) {
             return;
         }
-
-        Log.d("Checking for unlocks", name);
 
         List<DailyStepsDTO> dailyStepTotals = new ArrayList<DailyStepsDTO>();
         DailyStepsDTO dailyStepsDTO = new DailyStepsDTO(todayTimestamp, todayStepCount);
