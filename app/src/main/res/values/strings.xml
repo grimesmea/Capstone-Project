@@ -30,7 +30,7 @@
     <string name="week_average_steps_label_start">You averaged</string>
     <string name="week_average_steps_label_end">steps per day this week.</string>
     <!-- EmptyView messages -->
-    <string name="empty_daily_steps_list">Waiting on data from Google Fit...</string>
+    <string name="empty_daily_steps_list_waiting_for_response">Waiting on data from Google Fit...</string>
     <string name="empty_daily_steps_list_failed_connection">Could not connect to the Google Fit API. Try again later.</string>
     <string name="empty_daily_steps_list_no_data">No step data available for the past 7 days.</string>
 
