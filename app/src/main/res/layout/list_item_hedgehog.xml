@@ -33,7 +33,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scaleType="fitCenter"
-            android:src="@drawable/hedgie_1"
+            android:src="@drawable/rylai_silhouette_image"
             android:transitionName="@string/hedgehog_image_transition_name" />
     </RelativeLayout>
 

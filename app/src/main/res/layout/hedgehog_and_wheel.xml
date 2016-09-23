@@ -19,5 +19,5 @@
         android:layout_alignBaseline="@id/wheel_image"
         android:layout_alignBottom="@id/wheel_image"
         android:scaleType="fitCenter"
-        android:src="@drawable/hedgie_1" />
+        android:src="@drawable/rylai_silhouette_image" />
 </RelativeLayout>
