@@ -96,7 +96,7 @@ public class WeekStatsFragment extends Fragment {
         SimpleDividerItemDecoration dividerItemDecoration = new SimpleDividerItemDecoration(getContext());
         mRecyclerView.addItemDecoration(dividerItemDecoration);
 
-        mDailyStepsAdapter = new DailyStepsAdapter(getActivity(), dailyStepTotals, emptyView);
+        mDailyStepsAdapter = new DailyStepsAdapter(getActivity(), dailyStepTotals, emptyView, true);
         mRecyclerView.setAdapter(mDailyStepsAdapter);
 
         return rootView;
@@ -154,6 +154,8 @@ public class WeekStatsFragment extends Fragment {
                         textView.setTextColor(ContextCompat.getColor(getContext(), R.color.light_grey));
                         snackbar.show();
 
+                        mDailyStepsAdapter.updateEmptyViewMessage(R.string.empty_daily_steps_list_failed_connection);
+
                         if (!authInProgress) {
                             try {
                                 authInProgress = true;
@@ -185,6 +187,8 @@ public class WeekStatsFragment extends Fragment {
         cal.add(Calendar.WEEK_OF_YEAR, -1);
         startTime = cal.getTimeInMillis();
 
+        mDailyStepsAdapter.updateEmptyViewMessage(R.string.empty_daily_steps_list_waiting_for_response);
+
         DataReadRequest readRequest = new DataReadRequest.Builder()
                 // The data request can specify multiple data types to return, effectively
                 // combining multiple data queries into one call.
@@ -211,6 +215,7 @@ public class WeekStatsFragment extends Fragment {
                     if (dataReadResult.getBuckets().size() > 0) {
                         Log.i(LOG_TAG, "Number of returned buckets of DataSets is: "
                                 + dataReadResult.getBuckets().size());
+                        dailyStepTotals.clear();
                         for (Bucket bucket : dataReadResult.getBuckets()) {
                             List<DataSet> dataSets = bucket.getDataSets();
                             for (DataSet dataSet : dataSets) {
@@ -227,8 +232,10 @@ public class WeekStatsFragment extends Fragment {
                 }
 
                 dailyAverageStepsView.setText(String.format("%,d", dailyStepAverageSteps));
+                mDailyStepsAdapter.updateEmptyViewMessage(R.string.empty_daily_steps_list_no_data);
 
-                mDailyStepsAdapter = new DailyStepsAdapter(getActivity(), dailyStepTotals, emptyView);
+                mDailyStepsAdapter = new DailyStepsAdapter(getActivity(), dailyStepTotals, emptyView,
+                        false);
                 mRecyclerView.setAdapter(mDailyStepsAdapter);
             }
         });
@@ -257,6 +264,11 @@ public class WeekStatsFragment extends Fragment {
             totalDays++;
         }
 
-        return (int) totalSteps / totalDays;
+        if (totalDays == 0) {
+            return 0;
+        } else {
+            return (int) totalSteps / totalDays;
+        }
+
     }
 }
